@@ -40,9 +40,9 @@ namespace Mapsui.Rendering.Skia
 
 		            var matrix = CreateRotationMatrix(viewport, boundingBox, priorMatrix);
 
-		            canvas.SetMatrix(matrix);
+                    canvas.SetMatrix(matrix);
 
-		            var destination = new BoundingBox(0.0, 0.0, boundingBox.Width, boundingBox.Height);
+                    var destination = new BoundingBox(0.0, 0.0, boundingBox.Width, boundingBox.Height);
 
 		            BitmapHelper.RenderRaster(canvas, bitmapInfo.Bitmap, destination.ToSkia(), opacity);
 
@@ -80,6 +80,7 @@ namespace Mapsui.Rendering.Skia
             // We'll concatenate them like so: incomingMatrix * centerInScreen * userRotation * zoomScale * focalPointOffset
 
             SKMatrix.Concat(ref matrix, zoomScale, focalPointOffset);
+            // If the line below is disabled dragging the map is much faster.
             SKMatrix.Concat(ref matrix, userRotation, matrix);
             SKMatrix.Concat(ref matrix, centerInScreen, matrix);
             SKMatrix.Concat(ref matrix, priorMatrix, matrix);

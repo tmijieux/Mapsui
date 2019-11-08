@@ -8,6 +8,7 @@ namespace Mapsui.Rendering.Skia.SkiaWidgets
     {
         public void Draw(SKCanvas canvas, IReadOnlyViewport viewport, IWidget widget, float layerOpacity)
         {
+            return; //!!!
             var hyperlink = (Hyperlink) widget;
             if (string.IsNullOrEmpty(hyperlink.Text)) return;
             var textPaint = new SKPaint { Color = hyperlink.TextColor.ToSkia(layerOpacity), IsAntialias = true };

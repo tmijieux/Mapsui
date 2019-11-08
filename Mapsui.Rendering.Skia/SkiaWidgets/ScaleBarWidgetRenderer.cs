@@ -15,6 +15,8 @@ namespace Mapsui.Rendering.Skia.SkiaWidgets
         public void Draw(SKCanvas canvas, IReadOnlyViewport viewport,  IWidget widget,
             float layerOpacity)
         {
+            return; //!!!
+
             var scaleBar = (ScaleBarWidget) widget;
             if (!scaleBar.CanTransform()) return;
 
