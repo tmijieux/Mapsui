@@ -7,7 +7,7 @@ namespace Mapsui.Rendering.Skia
 {
     internal static class PolygonRenderer
     {
-        public static void Draw(SKCanvas canvas, IReadOnlyViewport viewport, IStyle style, IFeature feature, IGeometry geometry,
+        public static void Draw(SkiaTarget canvas, IReadOnlyViewport viewport, IStyle style, IFeature feature, IGeometry geometry,
             float opacity, SymbolCache symbolCache = null)
         {
             if (style is LabelStyle labelStyle)
@@ -52,7 +52,7 @@ namespace Mapsui.Rendering.Skia
                     fillColor = vectorStyle.Fill?.Color;
                 }
 
-                using (var path = polygon.ToSkiaPath(viewport, canvas.LocalClipBounds, lineWidth))
+                using (var path = polygon.ToSkiaPath(viewport, canvas.Canvas.LocalClipBounds, lineWidth))
                 using (var paintFill = new SKPaint { IsAntialias = true })
                 {
                     // Is there a FillStyle?
@@ -63,7 +63,7 @@ namespace Mapsui.Rendering.Skia
                         paintFill.PathEffect = null;
                         paintFill.Shader = null;
                         paintFill.Color = fillColor.ToSkia(opacity);
-                        canvas.DrawPath(path, paintFill);
+                        canvas.Canvas.DrawPath(path, paintFill);
                     }
                     else
                     {
@@ -136,15 +136,15 @@ namespace Mapsui.Rendering.Skia
                         }
 
                         // Do this, because if not, path isn't filled complete
-                        using (new SKAutoCanvasRestore(canvas))
+                        using (new SKAutoCanvasRestore(canvas.Canvas))
                         {
-                            canvas.ClipPath(path);
+                            canvas.Canvas.ClipPath(path);
                             var bounds = path.Bounds;
                             // Make sure, that the brush starts with the correct position
                             var inflate = ((int)path.Bounds.Width * 0.3f / scale) * scale;
                             bounds.Inflate(inflate, inflate);
                             // Draw rect with bigger size, which is clipped by path
-                            canvas.DrawRect(bounds, paintFill);
+                            canvas.Canvas.DrawRect(bounds, paintFill);
                         }
                     }
 
@@ -162,7 +162,7 @@ namespace Mapsui.Rendering.Skia
                                 paintStroke.PathEffect = strokeStyle.ToSkia(lineWidth, dashArray);
                             else
                                 paintStroke.PathEffect = null;
-                            canvas.DrawPath(path, paintStroke);
+                            canvas.Canvas.DrawPath(path, paintStroke);
                         }
                     }
                 }

@@ -8,7 +8,7 @@ namespace Mapsui.Rendering.Skia
 {
     static class PointRenderer
     {
-        public static void Draw(SKCanvas canvas, IReadOnlyViewport viewport, IStyle style, IFeature feature, 
+        public static void Draw(SkiaTarget canvas, IReadOnlyViewport viewport, IStyle style, IFeature feature, 
             IGeometry geometry, SymbolCache symbolCache, float opacity)
         {
             var point = geometry as Point;
@@ -42,37 +42,37 @@ namespace Mapsui.Rendering.Skia
             }
         }
 
-        private static void DrawPointWithSymbolStyle(SKCanvas canvas, SymbolStyle style,
+        private static void DrawPointWithSymbolStyle(SkiaTarget canvas, SymbolStyle style,
             Point destination, float opacity, SymbolType symbolType, float mapRotation)
         {
-            canvas.Save();
-            canvas.Translate((float)destination.X, (float)destination.Y);
-            canvas.Scale((float)style.SymbolScale, (float)style.SymbolScale);
+            canvas.Canvas.Save();
+            canvas.Canvas.Translate((float)destination.X, (float)destination.Y);
+            canvas.Canvas.Scale((float)style.SymbolScale, (float)style.SymbolScale);
             if (style.SymbolOffset.IsRelative)
-                canvas.Translate((float)(SymbolStyle.DefaultWidth * style.SymbolOffset.X), (float)(-SymbolStyle.DefaultWidth * style.SymbolOffset.Y));
+                canvas.Canvas.Translate((float)(SymbolStyle.DefaultWidth * style.SymbolOffset.X), (float)(-SymbolStyle.DefaultWidth * style.SymbolOffset.Y));
             else
-                canvas.Translate((float) style.SymbolOffset.X, (float) -style.SymbolOffset.Y);
+                canvas.Canvas.Translate((float) style.SymbolOffset.X, (float) -style.SymbolOffset.Y);
             if (style.SymbolRotation != 0)
             {
                 var rotation = (float)style.SymbolRotation;
                 if (style.RotateWithMap) rotation += mapRotation;
-                canvas.RotateDegrees(rotation);
+                canvas.Canvas.RotateDegrees(rotation);
             }
 
             DrawPointWithVectorStyle(canvas, style, opacity, symbolType);
-            canvas.Restore();
+            canvas.Canvas.Restore();
         }
 
-        private static void DrawPointWithVectorStyle(SKCanvas canvas, VectorStyle vectorStyle,
+        private static void DrawPointWithVectorStyle(SkiaTarget canvas, VectorStyle vectorStyle,
             Point destination, float opacity, SymbolType symbolType = SymbolType.Ellipse)
         {
-            canvas.Save();
-            canvas.Translate((float)destination.X, (float)destination.Y);
+            canvas.Canvas.Save();
+            canvas.Canvas.Translate((float)destination.X, (float)destination.Y);
             DrawPointWithVectorStyle(canvas, vectorStyle, opacity, symbolType);
-            canvas.Restore();
+            canvas.Canvas.Restore();
         }
 
-        private static void DrawPointWithVectorStyle(SKCanvas canvas, VectorStyle vectorStyle,
+        private static void DrawPointWithVectorStyle(SkiaTarget canvas, VectorStyle vectorStyle,
             float opacity, SymbolType symbolType = SymbolType.Ellipse)
         {
             var width = (float)SymbolStyle.DefaultWidth;
@@ -86,14 +86,14 @@ namespace Mapsui.Rendering.Skia
             switch (symbolType)
             {
                 case SymbolType.Ellipse:
-                    DrawCircle(canvas, 0, 0, halfWidth, fillPaint, linePaint);
+                    DrawCircle(canvas.Canvas, 0, 0, halfWidth, fillPaint, linePaint);
                     break;
                 case SymbolType.Rectangle:
                     var rect = new SKRect(-halfWidth, -halfHeight, halfWidth, halfHeight);
-                    DrawRect(canvas, rect, fillPaint, linePaint);
+                    DrawRect(canvas.Canvas, rect, fillPaint, linePaint);
                     break;
                 case SymbolType.Triangle:
-                    DrawTriangle(canvas, 0, 0, width, fillPaint, linePaint);
+                    DrawTriangle(canvas.Canvas, 0, 0, width, fillPaint, linePaint);
                     break;
                 default: // Invalid value
                     throw new ArgumentOutOfRangeException();
@@ -163,7 +163,7 @@ namespace Mapsui.Rendering.Skia
             if ((lineColor != null) && lineColor.Color.Alpha != 0) canvas.DrawPath(path, lineColor);
         }
 
-        private static void DrawPointWithBitmapStyle(SKCanvas canvas, SymbolStyle symbolStyle, Point destination,
+        private static void DrawPointWithBitmapStyle(SkiaTarget canvas, SymbolStyle symbolStyle, Point destination,
             SymbolCache symbolCache, float opacity, float mapRotation)
         {
             var bitmap = symbolCache.GetOrCreate(symbolStyle.BitmapId);

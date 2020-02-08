@@ -8,7 +8,7 @@ namespace Mapsui.Samples.CustomWidget
 {
     public class CustomWidgetSkiaRenderer : ISkiaWidgetRenderer
     {
-        public void Draw(SKCanvas canvas, IReadOnlyViewport viewport, IWidget widget, float layerOpacity)
+        public void Draw(SkiaTarget canvas, IReadOnlyViewport viewport, IWidget widget, float layerOpacity)
         {
             // Cast to custom widget to be able to access the specific CustomWidget fields
             var customWidget = (CustomWidget) widget;
@@ -17,7 +17,7 @@ namespace Mapsui.Samples.CustomWidget
             widget.Envelope = ToEnvelope(customWidget);
             
             // Use the envelope to draw
-            canvas.DrawRect(widget.Envelope.ToSkia(), new SKPaint { Color = customWidget.Color.ToSkia(0.5f)});
+            canvas.Canvas.DrawRect(widget.Envelope.ToSkia(), new SKPaint { Color = customWidget.Color.ToSkia(0.5f)});
         }
 
         private static BoundingBox ToEnvelope(CustomWidget customWidget)

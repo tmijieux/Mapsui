@@ -10,7 +10,7 @@ namespace Mapsui.Rendering.Skia
 {
     public static class RasterRenderer
     {
-		public static void Draw (SKCanvas canvas, IReadOnlyViewport viewport, IStyle style, IFeature feature,
+		public static void Draw (SkiaTarget canvas, IReadOnlyViewport viewport, IStyle style, IFeature feature,
             float opacity, IDictionary<object, BitmapInfo> tileCache, long currentIteration)
 		{
 		    try
@@ -36,17 +36,17 @@ namespace Mapsui.Rendering.Skia
 
 		        if (viewport.IsRotated)
 		        {
-		            var priorMatrix = canvas.TotalMatrix;
+		            var priorMatrix = canvas.Canvas.TotalMatrix;
 
 		            var matrix = CreateRotationMatrix(viewport, boundingBox, priorMatrix);
 
-		            canvas.SetMatrix(matrix);
+		            canvas.Canvas.SetMatrix(matrix);
 
 		            var destination = new BoundingBox(0.0, 0.0, boundingBox.Width, boundingBox.Height);
 
 		            BitmapHelper.RenderRaster(canvas, bitmapInfo.Bitmap, destination.ToSkia(), opacity);
 
-		            canvas.SetMatrix(priorMatrix);
+		            canvas.Canvas.SetMatrix(priorMatrix);
 		        }
 		        else
 		        {

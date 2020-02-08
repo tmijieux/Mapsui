@@ -12,7 +12,7 @@ namespace Mapsui.Rendering.Skia.SkiaWidgets
         private SKPaint _paintScaleText;
         private SKPaint _paintScaleTextStroke;
 
-        public void Draw(SKCanvas canvas, IReadOnlyViewport viewport,  IWidget widget,
+        public void Draw(SkiaTarget canvas, IReadOnlyViewport viewport,  IWidget widget,
             float layerOpacity)
         {
             var scaleBar = (ScaleBarWidget) widget;
@@ -83,13 +83,13 @@ namespace Mapsui.Rendering.Skia.SkiaWidgets
                 // Draw outline of scale bar
                 for (int i = 0; i < points.Length; i += 2)
                 {
-                    canvas.DrawLine((float)points[i].X, (float)points[i].Y, (float)points[i + 1].X, (float)points[i + 1].Y, _paintScaleBarStroke);
+                    canvas.Canvas.DrawLine((float)points[i].X, (float)points[i].Y, (float)points[i + 1].X, (float)points[i + 1].Y, _paintScaleBarStroke);
                 }
 
                 // Draw scale bar
                 for (int i = 0; i < points.Length; i += 2)
                 {
-                    canvas.DrawLine((float)points[i].X, (float)points[i].Y, (float)points[i + 1].X, (float)points[i + 1].Y, _paintScaleBar);
+                    canvas.Canvas.DrawLine((float)points[i].X, (float)points[i].Y, (float)points[i + 1].X, (float)points[i + 1].Y, _paintScaleBar);
                 }
 
                 envelop = points[0].BoundingBox;
@@ -114,8 +114,8 @@ namespace Mapsui.Rendering.Skia.SkiaWidgets
             var (posX1, posY1, posX2, posY2) = scaleBar.GetScaleBarTextPositions(viewport, textSize.ToMapsui(), textSize1.ToMapsui(), textSize2.ToMapsui(), scaleBar.StrokeWidthHalo);
 
             // Now draw text
-            canvas.DrawText(scaleBarText1, posX1, posY1 - textSize1.Top, _paintScaleTextStroke);
-            canvas.DrawText(scaleBarText1, posX1, posY1 - textSize1.Top, _paintScaleText);
+            canvas.Canvas.DrawText(scaleBarText1, posX1, posY1 - textSize1.Top, _paintScaleTextStroke);
+            canvas.Canvas.DrawText(scaleBarText1, posX1, posY1 - textSize1.Top, _paintScaleText);
 
             envelop = envelop.Join(new BoundingBox(posX1, posY1, posX1 + textSize1.Width, posY1 + textSize1.Height));
 
@@ -125,8 +125,8 @@ namespace Mapsui.Rendering.Skia.SkiaWidgets
                 scaleBarText2 = scaleBarText2 ?? string.Empty;
                 _paintScaleTextStroke.MeasureText(scaleBarText2, ref textSize2);
 
-                canvas.DrawText(scaleBarText2, posX2, posY2 - textSize2.Top, _paintScaleTextStroke);
-                canvas.DrawText(scaleBarText2, posX2, posY2 - textSize2.Top, _paintScaleText);
+                canvas.Canvas.DrawText(scaleBarText2, posX2, posY2 - textSize2.Top, _paintScaleTextStroke);
+                canvas.Canvas.DrawText(scaleBarText2, posX2, posY2 - textSize2.Top, _paintScaleText);
 
                 envelop = envelop.Join(new BoundingBox(posX2, posY2, posX2 + textSize2.Width, posY2 + textSize2.Height));
             }
@@ -137,7 +137,7 @@ namespace Mapsui.Rendering.Skia.SkiaWidgets
             {
                 // Draw a rect around the scale bar for testing
                 var tempPaint = _paintScaleTextStroke;
-                canvas.DrawRect(new SKRect((float)envelop.MinX, (float)envelop.MinY, (float)envelop.MaxX, (float)envelop.MaxY), tempPaint);
+                canvas.Canvas.DrawRect(new SKRect((float)envelop.MinX, (float)envelop.MinY, (float)envelop.MaxX, (float)envelop.MaxY), tempPaint);
             }
         }
 

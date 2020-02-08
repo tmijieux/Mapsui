@@ -7,7 +7,7 @@ namespace Mapsui.Rendering.Skia
 {
     public static class LineStringRenderer
     {
-        public static void Draw(SKCanvas canvas, IReadOnlyViewport viewport, IStyle style, IFeature feature, IGeometry geometry,
+        public static void Draw(SkiaTarget canvas, IReadOnlyViewport viewport, IStyle style, IFeature feature, IGeometry geometry,
             float opacity)
         {
             if (style is LabelStyle labelStyle)
@@ -42,7 +42,7 @@ namespace Mapsui.Rendering.Skia
                     dashArray = vectorStyle.Line.DashArray;
                 }
 
-                using (var path = lineString.ToSkiaPath(viewport, canvas.LocalClipBounds))
+                using (var path = lineString.ToSkiaPath(viewport, canvas.Canvas.LocalClipBounds))
                 using (var paint = new SKPaint { IsAntialias = true })
                 {
                     paint.IsStroke = true;
@@ -55,7 +55,7 @@ namespace Mapsui.Rendering.Skia
                         paint.PathEffect = strokeStyle.ToSkia(lineWidth, dashArray);
                     else
                         paint.PathEffect = null;
-                    canvas.DrawPath(path, paint);
+                    canvas.Canvas.DrawPath(path, paint);
                 }
             }
         }

@@ -6,7 +6,7 @@ namespace Mapsui.Rendering.Skia.SkiaWidgets
 {
     public class HyperlinkWidgetRenderer : ISkiaWidgetRenderer
     {
-        public void Draw(SKCanvas canvas, IReadOnlyViewport viewport, IWidget widget, float layerOpacity)
+        public void Draw(SkiaTarget canvas, IReadOnlyViewport viewport, IWidget widget, float layerOpacity)
         {
             var hyperlink = (Hyperlink) widget;
             if (string.IsNullOrEmpty(hyperlink.Text)) return;
@@ -24,10 +24,10 @@ namespace Mapsui.Rendering.Skia.SkiaWidgets
             var offsetX = GetOffsetX(backRect.Width, hyperlink.MarginX, hyperlink.HorizontalAlignment, viewport.Width);
             var offsetY = GetOffsetY(backRect.Height, hyperlink.MarginY, hyperlink.VerticalAlignment, viewport.Height);
             backRect.Offset(offsetX, offsetY);
-            canvas.DrawRoundRect(backRect, hyperlink.CornerRadius, hyperlink.CornerRadius, backPaint);
+            canvas.Canvas.DrawRoundRect(backRect, hyperlink.CornerRadius, hyperlink.CornerRadius, backPaint);
             hyperlink.Envelope = backRect.ToMapsui();
             // To position the text within the backRect correct using the textRect's offset.
-            canvas.DrawText(hyperlink.Text,
+            canvas.Canvas.DrawText(hyperlink.Text,
                 offsetX - textRect.Left + hyperlink.PaddingX,
                 offsetY - textRect.Top + hyperlink.PaddingY, textPaint);
         }

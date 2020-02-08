@@ -46,15 +46,17 @@ namespace Mapsui.Rendering.Skia
             IEnumerable<IWidget> widgets, Color background = null)
         {
             var allWidgets = layers.Select(l => l.Attribution).Where(w => w != null).ToList().Concat(widgets);
-            RenderTypeSave((SKCanvas)target, viewport, layers, allWidgets, background);
+            var skiaTarget = new SkiaTarget { Canvas = (SKCanvas)target };
+
+            RenderTypeSave(skiaTarget, viewport, layers, allWidgets, background);
         }
 
-        private void RenderTypeSave(SKCanvas canvas, IReadOnlyViewport viewport, IEnumerable<ILayer> layers,
+        private void RenderTypeSave(SkiaTarget canvas, IReadOnlyViewport viewport, IEnumerable<ILayer> layers,
             IEnumerable<IWidget> widgets, Color background = null)
         {
             if (!viewport.HasSize) return;
 
-            if (background != null) canvas.Clear(background.ToSkia(1));
+            if (background != null) canvas.Canvas.Clear(background.ToSkia(1));
             Render(canvas, viewport, layers);
             Render(canvas, viewport, widgets, 1);
         }
@@ -72,7 +74,10 @@ namespace Mapsui.Rendering.Skia
                     if (surface == null) return null;
                     // Not sure if this is needed here:
                     if (background != null) surface.Canvas.Clear(background.ToSkia(1));
-                    Render(surface.Canvas, viewport, layers);
+
+                    var skiaTarget = new SkiaTarget { Canvas = surface.Canvas };
+
+                    Render(skiaTarget, viewport, layers);
                     using (var image = surface.Snapshot())
                     {
                         using (var data = image.Encode())
@@ -91,7 +96,7 @@ namespace Mapsui.Rendering.Skia
             }
         }
 
-        private void Render(SKCanvas canvas, IReadOnlyViewport viewport, IEnumerable<ILayer> layers)
+        private void Render(SkiaTarget canvas, IReadOnlyViewport viewport, IEnumerable<ILayer> layers)
         {
             try
             {
@@ -134,7 +139,7 @@ namespace Mapsui.Rendering.Skia
             }
         }
 
-        private void RenderFeature(SKCanvas canvas, IReadOnlyViewport viewport, IStyle style, IFeature feature, float layerOpacity)
+        private void RenderFeature(SkiaTarget canvas, IReadOnlyViewport viewport, IStyle style, IFeature feature, float layerOpacity)
         {
             if (feature.Geometry is Point)
                 PointRenderer.Draw(canvas, viewport, style, feature, feature.Geometry, _symbolCache, layerOpacity * style.Opacity);

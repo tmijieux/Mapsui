@@ -41,19 +41,19 @@ namespace Mapsui.Rendering.Skia
             return null;
         }
 
-        public static void RenderBitmap(SKCanvas canvas, SKImage bitmap, float x, float y, float rotation = 0,
+        public static void RenderBitmap(SkiaTarget canvas, SKImage bitmap, float x, float y, float rotation = 0,
             float offsetX = 0, float offsetY = 0,
             LabelStyle.HorizontalAlignmentEnum horizontalAlignment = LabelStyle.HorizontalAlignmentEnum.Center,
             LabelStyle.VerticalAlignmentEnum verticalAlignment = LabelStyle.VerticalAlignmentEnum.Center,
             float opacity = 1f,
             float scale = 1f)
         {
-            canvas.Save();
+            canvas.Canvas.Save();
 
-            canvas.Translate(x, y);
+            canvas.Canvas.Translate(x, y);
             if (rotation != 0)
-                canvas.RotateDegrees(rotation, 0, 0); // todo: degrees or radians?
-            canvas.Scale(scale, scale);
+                canvas.Canvas.RotateDegrees(rotation, 0, 0); // todo: degrees or radians?
+            canvas.Canvas.Scale(scale, scale);
 
             var width = bitmap.Width;
             var height = bitmap.Height;
@@ -68,31 +68,31 @@ namespace Mapsui.Rendering.Skia
 
             RenderBitmap(canvas, bitmap, rect, opacity);
 
-            canvas.Restore();
+            canvas.Canvas.Restore();
         }
 
-        public static void RenderSvg(SKCanvas canvas, SkiaSharp.Extended.Svg.SKSvg svg, float x, float y, float orientation = 0,
+        public static void RenderSvg(SkiaTarget canvas, SkiaSharp.Extended.Svg.SKSvg svg, float x, float y, float orientation = 0,
             float offsetX = 0, float offsetY = 0,
             LabelStyle.HorizontalAlignmentEnum horizontalAlignment = LabelStyle.HorizontalAlignmentEnum.Left,
             LabelStyle.VerticalAlignmentEnum verticalAlignment = LabelStyle.VerticalAlignmentEnum.Top,
             float opacity = 1f,
             float scale = 1f)
         {
-            canvas.Save();
+            canvas.Canvas.Save();
 
-            canvas.Translate(x, y);
-            canvas.RotateDegrees(orientation, 0, 0); // todo: degrees or radians?
-            canvas.Scale(scale, scale);
+            canvas.Canvas.Translate(x, y);
+            canvas.Canvas.RotateDegrees(orientation, 0, 0); // todo: degrees or radians?
+            canvas.Canvas.Scale(scale, scale);
 
             var halfWidth = svg.CanvasSize.Width / 2;
             var halfHeight = svg.CanvasSize.Height / 2;
 
             // 0/0 are assumed at center of image, but Svg has 0/0 at left top position
-            canvas.Translate(-halfWidth + offsetX, -halfHeight - offsetY);
+            canvas.Canvas.Translate(-halfWidth + offsetX, -halfHeight - offsetY);
 
-            canvas.DrawPicture(svg.Picture);
+            canvas.Canvas.DrawPicture(svg.Picture);
 
-            canvas.Restore();
+            canvas.Canvas.Restore();
         }
 
         private static int DetermineHorizontalAlignmentCorrection(
@@ -111,9 +111,9 @@ namespace Mapsui.Rendering.Skia
             return 0; // center
         }
 
-        public static void RenderRaster(SKCanvas canvas, SKImage bitmap, SKRect rect, float layerOpacity)
+        public static void RenderRaster(SkiaTarget canvas, SKImage bitmap, SKRect rect, float layerOpacity)
         {
-            canvas.DrawImage(bitmap, rect, GetPaint(layerOpacity));
+            canvas.Canvas.DrawImage(bitmap, rect, GetPaint(layerOpacity));
         }
 
         private static SKPaint GetPaint(float layerOpacity)
@@ -133,9 +133,9 @@ namespace Mapsui.Rendering.Skia
         }
 
 
-        public static void RenderBitmap(SKCanvas canvas, SKImage bitmap, SKRect rect, float opacity = 1f)
+        public static void RenderBitmap(SkiaTarget canvas, SKImage bitmap, SKRect rect, float opacity = 1f)
         {
-            canvas.DrawImage(bitmap, rect, GetPaint(opacity));
+            canvas.Canvas.DrawImage(bitmap, rect, GetPaint(opacity));
         }
     }
 }

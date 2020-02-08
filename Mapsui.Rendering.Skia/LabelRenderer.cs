@@ -21,7 +21,7 @@ namespace Mapsui.Rendering.Skia
             IsEmbeddedBitmapText = true
         };
 
-        public static void DrawAsBitmap(SKCanvas canvas, LabelStyle style, IFeature feature, float x, float y, float layerOpacity)
+        public static void DrawAsBitmap(SkiaTarget canvas, LabelStyle style, IFeature feature, float x, float y, float layerOpacity)
         {
             var text = style.GetLabelText(feature);
 
@@ -40,7 +40,7 @@ namespace Mapsui.Rendering.Skia
                 horizontalAlignment: style.HorizontalAlignment, verticalAlignment: style.VerticalAlignment);
         }
 
-        public static void Draw(SKCanvas canvas, LabelStyle style, IFeature feature, float x, float y,
+        public static void Draw(SkiaTarget canvas, LabelStyle style, IFeature feature, float x, float y,
             float layerOpacity)
         {
             var text = style.GetLabelText(feature);
@@ -70,14 +70,14 @@ namespace Mapsui.Rendering.Skia
             using (var target = new SKCanvas(SKBitmap.FromImage(bitmap)))
             {
                 target.Clear();
-
-                DrawBackground(style, backRect, target, layerOpacity);
+                var skiaTarget = new SkiaTarget { Canvas = target };
+                DrawBackground(style, backRect, skiaTarget, layerOpacity);
                 target.DrawText(text, -rect.Left + 3, -rect.Top +3, paint);
                 return bitmap;
             }
         }
 
-        private static void DrawLabel(SKCanvas target, float x, float y, LabelStyle style, string text, float layerOpacity)
+        private static void DrawLabel(SkiaTarget target, float x, float y, LabelStyle style, string text, float layerOpacity)
         {
             UpdatePaint(style, layerOpacity);
 
@@ -205,15 +205,15 @@ namespace Mapsui.Rendering.Skia
                     foreach (var line in lines)
                     {
                         if (style.HorizontalAlignment == LabelStyle.HorizontalAlignmentEnum.Center)
-                            target.DrawText(line.Value, (float)(left + (drawRect.Width - line.Width) * 0.5), drawRect.Top + line.Baseline, Paint);
+                            target.Canvas.DrawText(line.Value, (float)(left + (drawRect.Width - line.Width) * 0.5), drawRect.Top + line.Baseline, Paint);
                         else if (style.HorizontalAlignment == LabelStyle.HorizontalAlignmentEnum.Right)
-                            target.DrawText(line.Value, left + drawRect.Width - line.Width, drawRect.Top + line.Baseline, Paint);
+                            target.Canvas.DrawText(line.Value, left + drawRect.Width - line.Width, drawRect.Top + line.Baseline, Paint);
                         else
-                            target.DrawText(line.Value, left, drawRect.Top + line.Baseline, Paint);
+                            target.Canvas.DrawText(line.Value, left, drawRect.Top + line.Baseline, Paint);
                     }
                 }
                 else
-                    target.DrawText(text, drawRect.Left, drawRect.Top + baseline, Paint);
+                    target.Canvas.DrawText(text, drawRect.Left, drawRect.Top + baseline, Paint);
             }
 
             UpdatePaint(style, layerOpacity);
@@ -224,15 +224,15 @@ namespace Mapsui.Rendering.Skia
                 foreach (var line in lines)
                 {
                     if (style.HorizontalAlignment == LabelStyle.HorizontalAlignmentEnum.Center)
-                        target.DrawText(line.Value, (float)(left + (drawRect.Width - line.Width) * 0.5), drawRect.Top + line.Baseline, Paint);
+                        target.Canvas.DrawText(line.Value, (float)(left + (drawRect.Width - line.Width) * 0.5), drawRect.Top + line.Baseline, Paint);
                     else if (style.HorizontalAlignment == LabelStyle.HorizontalAlignmentEnum.Right)
-                        target.DrawText(line.Value, left + drawRect.Width - line.Width, drawRect.Top + line.Baseline, Paint);
+                        target.Canvas.DrawText(line.Value, left + drawRect.Width - line.Width, drawRect.Top + line.Baseline, Paint);
                     else
-                        target.DrawText(line.Value, left, drawRect.Top + line.Baseline, Paint);
+                        target.Canvas.DrawText(line.Value, left, drawRect.Top + line.Baseline, Paint);
                 }
             }
             else
-                target.DrawText(text, drawRect.Left, drawRect.Top + baseline, Paint);
+                target.Canvas.DrawText(text, drawRect.Left, drawRect.Top + baseline, Paint);
         }
 
         private static float CalcHorizontalAlignment(LabelStyle.HorizontalAlignmentEnum horizontalAligment)
@@ -251,7 +251,8 @@ namespace Mapsui.Rendering.Skia
             throw new ArgumentException();
         }
 
-        private static void DrawBackground(LabelStyle style, SKRect rect, SKCanvas target, float layerOpacity)
+        // todo: SkiaTarget should be first parameters
+        private static void DrawBackground(LabelStyle style, SKRect rect, SkiaTarget target, float layerOpacity)
         {
             if (style.BackColor != null)
             {
@@ -261,7 +262,7 @@ namespace Mapsui.Rendering.Skia
                     var rounding = 6;
                     using (var backgroundPaint = new SKPaint {Color = color.Value})
                     {
-                        target.DrawRoundRect(rect, rounding, rounding, backgroundPaint);
+                        target.Canvas.DrawRoundRect(rect, rounding, rounding, backgroundPaint);
                     }
                 }
             }
