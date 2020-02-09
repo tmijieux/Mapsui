@@ -62,7 +62,7 @@ namespace Mapsui.Rendering.Skia
                         paintFill.Style = SKPaintStyle.Fill;
                         paintFill.PathEffect = null;
                         paintFill.Shader = null;
-                        paintFill.Color = fillColor.ToSkia(opacity);
+                        paintFill.Color = canvas.InfoMode ? canvas.GetInfoColor() :  fillColor.ToSkia(opacity);
                         canvas.Canvas.DrawPath(path, paintFill);
                     }
                     else
@@ -70,7 +70,7 @@ namespace Mapsui.Rendering.Skia
                         paintFill.StrokeWidth = 1;
                         paintFill.Style = SKPaintStyle.Stroke;
                         paintFill.Shader = null;
-                        paintFill.Color = fillColor.ToSkia(opacity);
+                        paintFill.Color = canvas.InfoMode ? canvas.GetInfoColor() : fillColor.ToSkia(opacity);
                         var scale = 10.0f;
                         var fillPath = new SKPath();
                         var matrix = SKMatrix.MakeScale(scale, scale);
@@ -154,7 +154,7 @@ namespace Mapsui.Rendering.Skia
                         {
                             paintStroke.Style = SKPaintStyle.Stroke;
                             paintStroke.StrokeWidth = lineWidth;
-                            paintStroke.Color = lineColor.ToSkia(opacity);
+                            paintStroke.Color = canvas.InfoMode ? canvas.GetInfoColor() : lineColor.ToSkia(opacity);
                             paintStroke.StrokeCap = strokeCap.ToSkia();
                             paintStroke.StrokeJoin = strokeJoin.ToSkia();
                             paintStroke.StrokeMiter = strokeMiterLimit;
@@ -165,6 +165,7 @@ namespace Mapsui.Rendering.Skia
                             canvas.Canvas.DrawPath(path, paintStroke);
                         }
                     }
+                    canvas.AddFeatureStyle(feature, vectorStyle);
                 }
             }
         }

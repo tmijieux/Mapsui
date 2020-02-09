@@ -35,6 +35,8 @@ namespace Mapsui.Rendering.Skia
             DefaultRendererFactory.Create = () => new MapRenderer();
         }
 
+        public SkiaTarget SkiaTarget { get; set; }
+
         public MapRenderer()
         {
             WidgetRenders[typeof(Hyperlink)] = new HyperlinkWidgetRenderer();
@@ -46,9 +48,9 @@ namespace Mapsui.Rendering.Skia
             IEnumerable<IWidget> widgets, Color background = null)
         {
             var allWidgets = layers.Select(l => l.Attribution).Where(w => w != null).ToList().Concat(widgets);
-            var skiaTarget = new SkiaTarget { Canvas = (SKCanvas)target };
+            SkiaTarget = new SkiaTarget { Canvas = (SKCanvas)target };
 
-            RenderTypeSave(skiaTarget, viewport, layers, allWidgets, background);
+            RenderTypeSave(SkiaTarget, viewport, layers, allWidgets, background);
         }
 
         private void RenderTypeSave(SkiaTarget canvas, IReadOnlyViewport viewport, IEnumerable<ILayer> layers,
@@ -59,6 +61,33 @@ namespace Mapsui.Rendering.Skia
             if (background != null) canvas.Canvas.Clear(background.ToSkia(1));
             Render(canvas, viewport, layers);
             Render(canvas, viewport, widgets, 1);
+        }
+
+        public SKImage RenderToSKImage(IReadOnlyViewport viewport, IEnumerable<ILayer> layers, Color background = null)
+        {
+            try
+            {
+                var width = (int)viewport.Width;
+                var height = (int)viewport.Height;
+                var imageInfo = new SKImageInfo(width, height, SKImageInfo.PlatformColorType, SKAlphaType.Unpremul);
+
+                using (var surface = SKSurface.Create(imageInfo))
+                {
+                    if (surface == null) return null;
+                    // Not sure if this is needed here:
+                    if (background != null) surface.Canvas.Clear(background.ToSkia(1));
+
+                    SkiaTarget = new SkiaTarget { Canvas = surface.Canvas };
+
+                    Render(SkiaTarget, viewport, layers);
+                    return surface.Snapshot();
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Log(LogLevel.Error, ex.Message);
+                return null;
+            }
         }
 
         public MemoryStream RenderToBitmapStream(IReadOnlyViewport viewport, IEnumerable<ILayer> layers, Color background = null)
