@@ -42,7 +42,7 @@ namespace Mapsui.Samples.Common.Maps
             var featureWithColors = new Feature { Geometry = new Point(8000000, 2000000) };
             featureWithColors.Styles.Add(new LabelStyle
             {
-                Text = "aaaaaaaaaaa",
+                Text = "16:TPP-DG14",
                 BackColor = new Brush(Color.Transparent),
                 ForeColor = Color.White,
                 Halo = new Pen(Color.Black, 2),
