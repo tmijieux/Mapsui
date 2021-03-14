@@ -20,4 +20,8 @@
     <Description>Mapsui</Description>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DefineConstants>__MAPSUI_BENCHMARK__</DefineConstants>
+  </PropertyGroup>
+
 </Project>
