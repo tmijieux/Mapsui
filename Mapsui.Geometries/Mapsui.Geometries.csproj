@@ -11,7 +11,7 @@
   </ItemGroup>
 
   <PropertyGroup>
-    <DebugType>full</DebugType>
+    <DebugType>portable</DebugType>
   </PropertyGroup>
 
 </Project>

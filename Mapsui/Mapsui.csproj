@@ -14,14 +14,10 @@
   </ItemGroup>
 
   <PropertyGroup>
-    <DebugType>full</DebugType>
+    <DebugType>portable</DebugType>
     <PackageId>NotMapsui</PackageId>
     <PackageVersion>1.0.0</PackageVersion>
     <Description>Mapsui</Description>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DefineConstants>__MAPSUI_BENCHMARK__</DefineConstants>
   </PropertyGroup>
 
 </Project>
