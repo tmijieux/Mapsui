@@ -3,6 +3,13 @@
     public enum PinType
     {
         /// <summary>
+        /// invalid pin
+        /// type the purpose of this is to avoid extra feature and styles creation
+        /// during pin constructor if we use initializer expression
+        /// </summary>
+        None = 0,
+
+        /// <summary>
         /// Pin with image, which could change color
         /// </summary>
         Pin,

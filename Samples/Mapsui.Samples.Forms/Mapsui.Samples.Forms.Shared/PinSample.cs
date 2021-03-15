@@ -31,15 +31,14 @@ namespace Mapsui.Samples.Forms.Shared
             switch (mapClickedArgs.NumOfTaps)
             {
                 case 1:
-                    var pin = new Pin(mapView)
-                    {
+                    var pin = new Pin {
                         Label = $"PinType.Pin {_markerNum++}",
                         Position = mapClickedArgs.Point,
                         Address = mapClickedArgs.Point.ToString(),
-                        Type = PinType.Pin,
                         Color = new Color(_random.Next(0, 256) / 256.0, _random.Next(0, 256) / 256.0, _random.Next(0, 256) / 256.0),
                         Transparency = 0.5f,
                         Scale = _random.Next(50, 130) / 100f,
+                        Type = PinType.Pin,
                     };
                     pin.Callout.Anchor = new Point(0, pin.Height * pin.Scale);
                     pin.Callout.RectRadius = _random.Next(0, 10);
@@ -96,20 +95,18 @@ namespace Mapsui.Samples.Forms.Shared
                     if (stream == null) throw new Exception($"Could not find EmbeddedResource {resourceName}");
                     var reader = new StreamReader(stream);
                     string svgString = reader.ReadToEnd();
-                    mapView.Pins.Add(new Pin(mapView)
-                    {
+                    mapView.Pins.Add(new Pin {
                         Label = $"PinType.Svg {_markerNum++}",
                         Position = mapClickedArgs.Point,
-                        Type = PinType.Svg,
                         Scale = 0.1f,
                         RotateWithMap = true,
-                        Svg = svgString
+                        Svg = svgString,
+                        Type = PinType.Svg,
                     });
                     break;
                 case 3:
                     var icon = assembly.GetManifestResourceStream("Mapsui.Samples.Common.Images.loc.png").ToBytes();
-                    mapView.Pins.Add(new Pin(mapView)
-                    {
+                    mapView.Pins.Add(new Pin {
                         Label = $"PinType.Icon {_markerNum++}",
                         Position = mapClickedArgs.Point,
                         Type = PinType.Icon,

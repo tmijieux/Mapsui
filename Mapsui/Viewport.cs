@@ -38,6 +38,7 @@ namespace Mapsui
         private Quad _windowExtent;
         private double _height;
         private double _resolution = Constants.DefaultResolution;
+        private double _invResolution = 1.0 / Constants.DefaultResolution;
         private double _width;
         private double _rotation;
         private ReadOnlyPoint _center = new ReadOnlyPoint(0, 0);
@@ -59,6 +60,7 @@ namespace Mapsui
         public Viewport(IReadOnlyViewport viewport) : this()
         {
             _resolution = viewport.Resolution;
+            _invResolution = 1.0 / _resolution;
             _width = viewport.Width;
             _height = viewport.Height;
             _rotation = viewport.Rotation;
@@ -90,6 +92,7 @@ namespace Mapsui
             set
             {
                 _resolution = value;
+                _invResolution = 1 / value;
                 OnViewportChanged();
             }
         }
@@ -179,8 +182,8 @@ namespace Mapsui
 
             if (IsRotated)
             {
-                var screenCenterX = Width / 2.0;
-                var screenCenterY = Height / 2.0;
+                var screenCenterX = Width * 0.5;
+                var screenCenterY = Height * 0.5;
                 p = p.Rotate(-_rotation, screenCenterX, screenCenterY);
             }
 
@@ -190,10 +193,10 @@ namespace Mapsui
         /// <inheritdoc />
         public Point WorldToScreenUnrotated(double worldX, double worldY)
         {
-            var screenCenterX = Width / 2.0;
-            var screenCenterY = Height / 2.0;
-            var screenX = (worldX - Center.X) / _resolution + screenCenterX;
-            var screenY = (Center.Y - worldY) / _resolution + screenCenterY;
+            var screenCenterX = Width * 0.5;
+            var screenCenterY = Height * 0.5;
+            var screenX = (worldX - Center.X) * _invResolution + screenCenterX;
+            var screenY = (Center.Y - worldY) * _invResolution + screenCenterY;
 
             return new Point(screenX, screenY);
         }
@@ -201,8 +204,8 @@ namespace Mapsui
         /// <inheritdoc />
         public Point ScreenToWorld(double screenX, double screenY)
         {
-            var screenCenterX = Width / 2.0;
-            var screenCenterY = Height / 2.0;
+            var screenCenterX = Width * 0.5;
+            var screenCenterY = Height * 0.5;
 
             if (IsRotated)
             {

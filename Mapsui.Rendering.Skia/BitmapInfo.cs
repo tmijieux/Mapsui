@@ -1,14 +1,14 @@
 ﻿using Mapsui.Styles;
 using SkiaSharp;
-using Svg.Skia;
 
 namespace Mapsui.Rendering.Skia
 {
     public enum BitmapType
     {
-        Bitmap,
-        Svg,
-        Sprite
+        //Bitmap,
+        Picture,
+        Image,
+        Sprite,
     }
 
     public class BitmapInfo
@@ -17,11 +17,11 @@ namespace Mapsui.Rendering.Skia
 
         public BitmapType Type { get; private set; }
 
-        public SKImage Bitmap
+        public SKImage Image
         {
             get
             {
-                if (Type == BitmapType.Bitmap)
+                if (Type == BitmapType.Image)
                     return (SKImage) _data;
                 else
                     return null;
@@ -29,23 +29,40 @@ namespace Mapsui.Rendering.Skia
             set
             {
                 _data = value;
-                Type = BitmapType.Bitmap;
+                Type = BitmapType.Image;
             }
         }
 
-        public SKSvg Svg
+        //public SKBitmap Bitmap
+        //{
+        //    get
+        //    {
+        //        if (Type == BitmapType.Bitmap)
+        //            return (SKBitmap) _data;
+        //        else
+        //            return null;
+        //    }
+        //    set
+        //    {
+        //        _data = value;
+        //        Type = BitmapType.Bitmap;
+        //    }
+        //}
+
+
+        public SKPicture Picture
         {
             get
             {
-                if (Type == BitmapType.Svg)
-                    return (SKSvg) _data;
+                if (Type == BitmapType.Picture)
+                    return (SKPicture) _data;
                 else
                     return null;
             }
             set
             {
                 _data = value;
-                Type = BitmapType.Svg;
+                Type = BitmapType.Picture;
             }
         }
 
@@ -66,6 +83,8 @@ namespace Mapsui.Rendering.Skia
         }
 
         public long IterationUsed { get; set; }
+        public float Rotation { get; set; }
+        public float Scale { get; set; } = 1.0f;
 
         public float Width
         {
@@ -73,10 +92,12 @@ namespace Mapsui.Rendering.Skia
             {
                 switch (Type)
                 {
-                    case BitmapType.Bitmap:
-                        return Bitmap.Width;
-                    case BitmapType.Svg:
-                        return Svg.Picture.CullRect.Width;
+                    case BitmapType.Image:
+                        return Image.Width;
+                    //case BitmapType.Bitmap:
+                    //    return Bitmap.Width;
+                    case BitmapType.Picture:
+                        return Picture.CullRect.Width;
                     case BitmapType.Sprite:
                         return ((Sprite) _data).Width;
                     default:
@@ -91,10 +112,12 @@ namespace Mapsui.Rendering.Skia
             {
                 switch (Type)
                 {
-                    case BitmapType.Bitmap:
-                        return Bitmap.Height;
-                    case BitmapType.Svg:
-                        return Svg.Picture.CullRect.Height;
+                    case BitmapType.Image:
+                        return Image.Height;
+                    //case BitmapType.Bitmap:
+                    //    return Bitmap.Height;
+                    case BitmapType.Picture:
+                        return Picture.CullRect.Height;
                     case BitmapType.Sprite:
                         return ((Sprite) _data).Height;
                     default:

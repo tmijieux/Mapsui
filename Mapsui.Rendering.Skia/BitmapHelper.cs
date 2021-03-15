@@ -22,18 +22,32 @@ namespace Mapsui.Rendering.Skia
                     var svg = new SKSvg();
                     svg.Load(stream);
 
-                    return new BitmapInfo {Svg = svg};
+                    return new BitmapInfo {Picture = svg.Picture};
                 }
-
-                var image = SKImage.FromEncodedData(SKData.CreateCopy(stream.ToBytes()));
-                return new BitmapInfo {Bitmap = image};
+                else
+                {
+                    var image = SKImage.FromEncodedData(SKData.CreateCopy(stream.ToBytes()));
+                    return new BitmapInfo { Image = image };
+                    //return new BitmapInfo {Bitmap = SKBitmap.FromImage(image) };
+                }
             }
-
-            if (bitmapStream is Sprite sprite)
+            else if (bitmapStream is Sprite sprite)
             {
                 return new BitmapInfo {Sprite = sprite};
             }
-
+            else if (bitmapStream is SKPicture pic)
+            {
+                return new BitmapInfo { Picture = pic };
+            }
+            //else if (bitmapStream is SKBitmap bitmap)
+            //{
+            //    return new BitmapInfo { Bitmap = bitmap };
+            //}
+            else if (bitmapStream is SKImage image)
+            {
+                //return new BitmapInfo { Bitmap = SKBitmap.FromImage(image) };
+                return new BitmapInfo { Image = image };
+            }
             return null;
         }
     }

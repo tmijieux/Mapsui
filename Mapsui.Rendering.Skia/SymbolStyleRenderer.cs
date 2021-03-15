@@ -8,36 +8,44 @@ namespace Mapsui.Rendering.Skia
     public class SymbolStyleRenderer
     {
         public static void Draw(SKCanvas canvas, VectorStyle vectorStyle,
-            Point destination, float opacity, SymbolType symbolType)
+            Point destination, float opacity, float pixelDensity, SymbolType symbolType)
         {
             canvas.Save();
             canvas.Translate((float)destination.X, (float)destination.Y);
-            Draw(canvas, vectorStyle, opacity, symbolType);
-            canvas.Restore();
+            //if (pixelDensity != 1.0f)
+            //    canvas.Scale(pixelDensity);
+            DrawImpl(canvas, vectorStyle, opacity, symbolType);
+            //canvas.Restore();
         }
 
         public static void Draw(SKCanvas canvas, SymbolStyle style,
-            Point destination, float opacity, SymbolType symbolType, double mapRotation)
+            Point destination, float opacity, float pixelDensity, SymbolType symbolType, double mapRotation)
         {
             canvas.Save();
             canvas.Translate((float)destination.X, (float)destination.Y);
-            canvas.Scale((float)style.SymbolScale, (float)style.SymbolScale);
+            float scale = (float)style.SymbolScale * pixelDensity;
+            if (scale != 1.0f)
+                canvas.Scale(scale);
             if (style.SymbolOffset.IsRelative)
-                canvas.Translate((float)(SymbolStyle.DefaultWidth * style.SymbolOffset.X), (float)(-SymbolStyle.DefaultWidth * style.SymbolOffset.Y));
+                canvas.Translate(
+                    (float)(SymbolStyle.DefaultWidth * pixelDensity * style.SymbolOffset.X), 
+                    (float)(-SymbolStyle.DefaultWidth * pixelDensity * style.SymbolOffset.Y));
             else
-                canvas.Translate((float)style.SymbolOffset.X, (float)-style.SymbolOffset.Y);
-            if (style.SymbolRotation != 0)
+                canvas.Translate((float)style.SymbolOffset.X*pixelDensity, (float)-style.SymbolOffset.Y*pixelDensity);
+
+            var rotation = style.SymbolRotation;
+            if (style.RotateWithMap)
+                rotation += mapRotation;
+            if (rotation != 0.0)
             {
-                var rotation = style.SymbolRotation;
-                if (style.RotateWithMap) rotation += mapRotation;
                 canvas.RotateDegrees((float)rotation);
             }
 
-            Draw(canvas, style, opacity, symbolType);
+            DrawImpl(canvas, style, opacity, symbolType);
             canvas.Restore();
         }
 
-        public static void Draw(SKCanvas canvas, VectorStyle vectorStyle,
+        private static void DrawImpl(SKCanvas canvas, VectorStyle vectorStyle,
             float opacity, SymbolType symbolType = SymbolType.Ellipse)
         {
             var width = (float)SymbolStyle.DefaultWidth;
@@ -45,7 +53,6 @@ namespace Mapsui.Rendering.Skia
             var halfHeight = (float)SymbolStyle.DefaultHeight / 2;
 
             var fillPaint = CreateFillPaint(vectorStyle.Fill, opacity);
-
             var linePaint = CreateLinePaint(vectorStyle.Outline, opacity);
 
             switch (symbolType)

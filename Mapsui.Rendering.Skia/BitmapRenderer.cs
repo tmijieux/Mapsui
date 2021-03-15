@@ -9,28 +9,30 @@ namespace Mapsui.Rendering.Skia
         // The field below is static for performance. Effect has not been measured.
         // Note that the default FilterQuality is None. Setting it explicitly to Low increases the quality.
         private static readonly SKPaint DefaultPaint = new SKPaint { FilterQuality = SKFilterQuality.Low };
-        
-        public static void Draw(SKCanvas canvas, SKImage bitmap, SKRect rect, float layerOpacity = 1f)
+
+        public static void DrawInRect(SKCanvas canvas, SKImage img, SKRect rect, float layerOpacity = 1f)
         {
-            canvas.DrawImage(bitmap, rect, GetPaint(layerOpacity));
+            canvas.DrawImage(img, rect, GetPaint(layerOpacity));
         }
 
-        public static void Draw(SKCanvas canvas, SKImage bitmap, float x, float y, float rotation = 0,
-            float offsetX = 0, float offsetY = 0,
+        private static void DrawImpl(SKCanvas canvas, SKImage img, SKPoint pos, float layerOpacity = 1f)
+        {
+            canvas.DrawImage(img, pos, GetPaint(layerOpacity));
+        }
+
+        public static void Draw(SKCanvas canvas, SKImage img, float x, float y, float rotation = 0.0f,
+            float offsetX = 0.0f, float offsetY = 0.0f,
             LabelStyle.HorizontalAlignmentEnum horizontalAlignment = LabelStyle.HorizontalAlignmentEnum.Center,
             LabelStyle.VerticalAlignmentEnum verticalAlignment = LabelStyle.VerticalAlignmentEnum.Center,
-            float opacity = 1f,
-            float scale = 1f)
+            float opacity = 1.0f)
         {
             canvas.Save();
-
             canvas.Translate(x, y);
-            if (rotation != 0)
-                canvas.RotateDegrees(rotation, 0, 0);
-            canvas.Scale(scale, scale);
+            if (rotation != 0.0f)
+                canvas.RotateDegrees(rotation);
 
-            var width = bitmap.Width;
-            var height = bitmap.Height;
+            var width = img.Width;
+            var height = img.Height;
 
             x = offsetX + DetermineHorizontalAlignmentCorrection(horizontalAlignment, width);
             y = -offsetY + DetermineVerticalAlignmentCorrection(verticalAlignment, height);
@@ -38,12 +40,15 @@ namespace Mapsui.Rendering.Skia
             var halfWidth = width >> 1;
             var halfHeight = height >> 1;
 
-            var rect = new SKRect(x - halfWidth, y - halfHeight, x + halfWidth, y + halfHeight);
+            // var rect = new SKRect(x - halfWidth, y - halfHeight,
+            //                       x + halfWidth, y + halfHeight);
+            //Draw(canvas, bitmap, rect, opacity);
 
-            Draw(canvas, bitmap, rect, opacity);
-
+            var pos = new SKPoint(x-halfWidth, y-halfHeight);
+            DrawImpl(canvas, img, pos, opacity);
             canvas.Restore();
         }
+
         private static int DetermineHorizontalAlignmentCorrection(
             LabelStyle.HorizontalAlignmentEnum horizontalAlignment, int width)
         {
@@ -66,7 +71,7 @@ namespace Mapsui.Rendering.Skia
             {
                 // Unfortunately for opacity we need to set the Color and the Color
                 // is part of the Paint object. So we need to recreate the paint on
-                // every draw. 
+                // every draw.
                 return new SKPaint
                 {
                     FilterQuality = SKFilterQuality.Low,

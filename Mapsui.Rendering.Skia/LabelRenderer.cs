@@ -22,7 +22,7 @@ namespace Mapsui.Rendering.Skia
             IsEmbeddedBitmapText = true
         };
 
-        public static void DrawAsBitmap(SKCanvas canvas, LabelStyle style, IFeature feature, float x, float y, float layerOpacity)
+        public static void DrawAsBitmap(SKCanvas canvas, LabelStyle style, IFeature feature, float x, float y, float layerOpacity, float pixelDensity)
         {
             var text = style.GetLabelText(feature);
 
@@ -30,28 +30,29 @@ namespace Mapsui.Rendering.Skia
                       style.BackColor + "_" + style.ForeColor;
 
             if (!LabelCache.Keys.Contains(key))
-                LabelCache[key] = new BitmapInfo { Bitmap = CreateLabelAsBitmap(style, text, layerOpacity) };
+                LabelCache[key] = new BitmapInfo { Image = CreateLabelAsBitmap(style, text, layerOpacity, pixelDensity) };
 
             var info = LabelCache[key];
             var offsetX = style.Offset.IsRelative ? info.Width * style.Offset.X : style.Offset.X;
             var offsetY = style.Offset.IsRelative ? info.Height * style.Offset.Y : style.Offset.Y;
 
-            BitmapRenderer.Draw(canvas, info.Bitmap, (int)Math.Round(x), (int)Math.Round(y),
+            BitmapRenderer.Draw(canvas, info.Image, (int)Math.Round(x), (int)Math.Round(y),
                 offsetX: (float)offsetX, offsetY: (float)-offsetY,
                 horizontalAlignment: style.HorizontalAlignment, verticalAlignment: style.VerticalAlignment);
         }
 
-        public static void Draw(SKCanvas canvas, LabelStyle style, IFeature feature, Point destination,
-            float layerOpacity)
+        public static void Draw(SKCanvas canvas, LabelStyle style, IFeature feature, Point destination, float layerOpacity, float pixelDensity)
         {
             var text = style.GetLabelText(feature);
-            if (string.IsNullOrEmpty(text)) return;
-            DrawLabel(canvas, (float)destination.X, (float)destination.Y, style, text, layerOpacity);
+            if (string.IsNullOrEmpty(text))
+                return;
+            DrawLabel(canvas, (float)destination.X, (float)destination.Y,
+                      style, text, layerOpacity, pixelDensity);
         }
 
-        private static SKImage CreateLabelAsBitmap(LabelStyle style, string text, float layerOpacity)
+        private static SKImage CreateLabelAsBitmap(LabelStyle style, string text, float layerOpacity, float pixelDensity)
         {
-            UpdatePaint(style, layerOpacity);
+            UpdatePaint(style, layerOpacity, pixelDensity);
 
             return CreateLabelAsBitmap(style, text, Paint, layerOpacity);
         }
@@ -66,7 +67,7 @@ namespace Mapsui.Rendering.Skia
             var skImageInfo = new SKImageInfo((int)backRect.Width, (int)backRect.Height);
 
             var bitmap = SKImage.Create(skImageInfo);
-            
+
             // todo: Construct SKCanvas with SKImage once this option becomes available
             using (var target = new SKCanvas(SKBitmap.FromImage(bitmap)))
             {
@@ -78,9 +79,9 @@ namespace Mapsui.Rendering.Skia
             }
         }
 
-        private static void DrawLabel(SKCanvas target, float x, float y, LabelStyle style, string text, float layerOpacity)
+        private static void DrawLabel(SKCanvas target, float x, float y, LabelStyle style, string text, float layerOpacity, float pixelDensity)
         {
-            UpdatePaint(style, layerOpacity);
+            UpdatePaint(style, layerOpacity, pixelDensity);
 
             var rect = new SKRect();
 
@@ -102,7 +103,9 @@ namespace Mapsui.Rendering.Skia
 
             var baseline = -rect.Top;  // Distance from top to baseline of text
 
-            var drawRect = new SKRect(0, 0, rect.Right - rect.Left, rect.Bottom - rect.Top);
+            var drawRect = new SKRect(0, 0,
+                                      rect.Right - rect.Left,
+                                      rect.Bottom - rect.Top);
 
             if ((style.MaxWidth > 0 && drawRect.Width > maxWidth) || hasNewline)
             {
@@ -116,7 +119,6 @@ namespace Mapsui.Rendering.Skia
                         lines[i].Baseline = baseline + (float)(style.LineHeight * emHeight * i);
                         width = Math.Max(lines[i].Width, width);
                     }
-
                     drawRect = new SKRect(0, 0, width, (float)(drawRect.Height + style.LineHeight * emHeight * (lines.Length - 1)));
                 }
 
@@ -176,7 +178,7 @@ namespace Mapsui.Rendering.Skia
 
             var horizontalAlign = CalcHorizontalAlignment(style.HorizontalAlignment);
             var verticalAlign = CalcVerticalAlignment(style.VerticalAlignment);
-                        
+
             var offsetX = style.Offset.IsRelative ? drawRect.Width * style.Offset.X : style.Offset.X;
             var offsetY = style.Offset.IsRelative ? drawRect.Height * style.Offset.Y : style.Offset.Y;
 
@@ -195,7 +197,7 @@ namespace Mapsui.Rendering.Skia
             // If style has a halo value, than draw halo text
             if (style.Halo != null)
             {
-                UpdatePaint(style, layerOpacity);
+                UpdatePaint(style, layerOpacity, pixelDensity);
                 Paint.Style = SKPaintStyle.StrokeAndFill;
                 Paint.Color = style.Halo.Color.ToSkia(layerOpacity);
                 Paint.StrokeWidth = (float)style.Halo.Width * 2;
@@ -217,7 +219,7 @@ namespace Mapsui.Rendering.Skia
                     target.DrawText(text, drawRect.Left, drawRect.Top + baseline, Paint);
             }
 
-            UpdatePaint(style, layerOpacity);
+            UpdatePaint(style, layerOpacity, pixelDensity);
 
             if (lines != null)
             {
@@ -270,7 +272,7 @@ namespace Mapsui.Rendering.Skia
 
         private static readonly Dictionary<string, SKTypeface> CacheTypeface = new Dictionary<string, SKTypeface>();
 
-        private static void UpdatePaint(LabelStyle style, float layerOpacity)
+        private static void UpdatePaint(LabelStyle style, float layerOpacity, float pixelDensity)
         {
             if (!CacheTypeface.TryGetValue(style.Font.FontFamily, out SKTypeface typeface))
             {
@@ -279,7 +281,7 @@ namespace Mapsui.Rendering.Skia
             }
 
             Paint.Style = SKPaintStyle.Fill;
-            Paint.TextSize = (float) style.Font.Size;
+            Paint.TextSize = (float) style.Font.Size * pixelDensity;
             Paint.Color = style.ForeColor.ToSkia(layerOpacity);
             Paint.Typeface = typeface;
         }

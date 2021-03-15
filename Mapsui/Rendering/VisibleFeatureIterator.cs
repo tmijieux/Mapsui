@@ -52,14 +52,17 @@ namespace Mapsui.Rendering
 
                 foreach (var feature in features)
                 {
-                    if (layerStyle is IThemeStyle) style = (layerStyle as IThemeStyle).GetStyle(feature);
-                    if (ShouldNotBeApplied(style, viewport)) continue;
+                    if (layerStyle is IThemeStyle) 
+                        style = (layerStyle as IThemeStyle).GetStyle(feature);
+                    if (ShouldNotBeApplied(style, viewport)) 
+                        continue;
 
                     if (style is StyleCollection styles) // The ThemeStyle can again return a StyleCollection
                     {
                         foreach (var s in styles)
                         {
-                            if (ShouldNotBeApplied(s, viewport)) continue;
+                            if (ShouldNotBeApplied(s, viewport))
+                                continue;
                             callback(viewport, layer, s, feature, (float)layer.Opacity);
                             ++stylesCount;
                         }
@@ -78,15 +81,13 @@ namespace Mapsui.Rendering
                 var featureStyles = feature.Styles ?? Enumerable.Empty<IStyle>(); // null check
                 foreach (var featureStyle in featureStyles)
                 {
-                    if (ShouldNotBeApplied(featureStyle, viewport)) continue;
+                    if (ShouldNotBeApplied(featureStyle, viewport)) 
+                        continue;
 
                     callback(viewport, layer, featureStyle, feature, (float)layer.Opacity);
                     ++stylesCount;
-
                 }
-
                 ++featureCount;
-
             }
 
             if (bench !=null)

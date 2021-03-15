@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using Svg.Skia;
@@ -484,7 +485,7 @@ namespace Mapsui.UI.Forms
         {
             return _mapControl.GetSnapshot(layers);
         }
-        
+
         /// <inheritdoc />
         public void RefreshGraphics()
         {
@@ -704,6 +705,10 @@ namespace Mapsui.UI.Forms
 
         private void HandlerPinsOnCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
+            var sw1 = new Stopwatch();
+            var sw2 = new Stopwatch();
+            sw1.Start();
+            Debug.WriteLine("pins collection changed !");
             if (e.NewItems != null && e.NewItems.Cast<Pin>().Any(pin => pin.Label == null))
                 throw new ArgumentException("Pin must have a Label to be added to a map");
 
@@ -731,11 +736,17 @@ namespace Mapsui.UI.Forms
                     if (item is Pin pin)
                     {
                         // Add new pins to layer, so set MapView
+                        sw1.Stop();
+                        sw2.Start();
                         pin.MapView = this;
+                        sw2.Stop();
+                        sw1.Start();
                         pin.PropertyChanged += HandlerPinPropertyChanged;
                     }
                 }
             }
+            sw1.Stop();
+            Debug.WriteLine($"pins collection changed END = sw1={sw1.Elapsed} sw2={sw2.Elapsed}!");
 
             Refresh();
         }

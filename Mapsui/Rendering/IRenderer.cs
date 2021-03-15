@@ -21,7 +21,7 @@ namespace Mapsui.Rendering
 
     public interface IRenderer : IRenderInfo
     {
-        void Render(object target, IReadOnlyViewport viewport, IEnumerable<ILayer> layers, IEnumerable<IWidget> widgets, Color background = null);
+        void Render(object target, IReadOnlyViewport viewport, IEnumerable<ILayer> layers, IEnumerable<IWidget> widgets, float pixelDensity, Color background = null);
         MemoryStream RenderToBitmapStream(IReadOnlyViewport viewport, IEnumerable<ILayer> layers, Color background = null, float pixelDensity = 1);
         ISymbolCache SymbolCache { get; }
         IDictionary<Type, IWidgetRenderer> WidgetRenders { get; }

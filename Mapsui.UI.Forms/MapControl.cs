@@ -10,6 +10,7 @@ using Mapsui.Geometries.Utilities;
 using Xamarin.Forms;
 using System.Threading.Tasks;
 using Mapsui.Utilities;
+using System.Diagnostics;
 
 namespace Mapsui.UI.Forms
 {
@@ -76,9 +77,15 @@ namespace Mapsui.UI.Forms
 
         public float ScreenHeight => (float)Height;
 
-        private float ViewportWidth => ScreenWidth;
+        private float ViewportWidth
+        {
+            get
+            {
+                return ScreenWidth * PixelDensity;
+            }
+        }
 
-        private float ViewportHeight => ScreenHeight;
+        private float ViewportHeight => ScreenHeight * PixelDensity;
 
         public ISymbolCache SymbolCache => _renderer.SymbolCache;
 
@@ -101,6 +108,9 @@ namespace Mapsui.UI.Forms
         private void OnSizeChanged(object sender, EventArgs e)
         {
             _touches.Clear();
+            Debug.WriteLine($"OnSizeChanged !! CanvasSize={CanvasSize.Width}, {CanvasSize.Height}");
+            Debug.WriteLine($"OnSizeChanged !! Width={Width}, {Height}");
+
             SetViewportSize();
         }
 
@@ -156,7 +166,7 @@ namespace Mapsui.UI.Forms
                     }
 
                     // While tapping on screen, there could be a small movement of the finger
-                    // (especially on Samsung). So check, if touch start location isn't more 
+                    // (especially on Samsung). So check, if touch start location isn't more
                     // than a number of pixels away from touch end location.
                     bool isAround = IsAround(releasedTouch);
 
@@ -251,12 +261,21 @@ namespace Mapsui.UI.Forms
         {
             if (PixelDensity <= 0)
                 return;
+            if (Viewport.Width != CanvasSize.Width || Viewport.Height  != CanvasSize.Height)
+            {
+                SetViewportSize();
+            }
+
             Navigator.UpdateAnimations();
+            var canvas = e.Surface.Canvas;
+            // canvas.Scale(PixelDensity);
 
-            e.Surface.Canvas.Scale(PixelDensity, PixelDensity);
-
-
-            Renderer.Render(e.Surface.Canvas, new Viewport(Viewport), _map.Layers, _map.Widgets, _map.BackColor);
+            _renderer.Render(canvas,
+                             new Viewport(Viewport),
+                             _map.Layers,
+                             _map.Widgets,
+                             PixelDensity,
+                             _map.BackColor);
 
             if (Renderer.Benchmarks.Count > 0)
             {
@@ -273,9 +292,9 @@ namespace Mapsui.UI.Forms
                             {
                                 avg_time = 0;
                             }
-                            System.Diagnostics.Debug.WriteLine($"{item.Name} {item.Time.ToString(c)} f={item.FeatureCount} s={item.StyleCount} avg_time_per_style={avg_time.ToString(c)}");
+                            Debug.WriteLine($"{item.Name} {item.Time.ToString(c)} f={item.FeatureCount} s={item.StyleCount} avg_time_per_style={avg_time.ToString(c)}");
                         }
-                    }
+                      }
                     catch (Exception)
                     {
                     }
@@ -285,7 +304,8 @@ namespace Mapsui.UI.Forms
 
         private Geometries.Point GetScreenPosition(SKPoint point)
         {
-            return new Geometries.Point(point.X / PixelDensity, point.Y / PixelDensity);
+            return new Geometries.Point(point.X, point.Y);
+            //return new Geometries.Point(point.X / PixelDensity, point.Y / PixelDensity);
         }
 
         public void RefreshGraphics()
@@ -757,7 +777,8 @@ namespace Mapsui.UI.Forms
 
         private float GetPixelDensity()
         {
-            if (Width <= 0) return 0;
+            if (Width <= 0)
+                return 0;
             return (float)(CanvasSize.Width / Width);
         }
     }

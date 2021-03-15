@@ -489,10 +489,12 @@ namespace Mapsui.UI.Wpf
             if (_map == null) return;
             if (PixelDensity <= 0) return;
 
-            args.Surface.Canvas.Scale(PixelDensity, PixelDensity);
+            var canvas = args.Surface.Canvas;
+            //canvas.Scale(PixelDensity);
 
             Navigator.UpdateAnimations();
-            Renderer.Render(args.Surface.Canvas, new Viewport(Viewport), Map.Layers, Map.Widgets, Map.BackColor);
+
+            Renderer.Render(args.Surface.Canvas, new Viewport(Viewport), Map.Layers, Map.Widgets, PixelDensity, Map.BackColor);
 
             if (Renderer.Benchmarks.Count > 0)
             {
@@ -514,7 +516,7 @@ namespace Mapsui.UI.Wpf
             if (_map == null) return;
 
             Navigator.UpdateAnimations();
-            Renderer.Render(WpfCanvas, Viewport, _map.Layers, Map.Widgets, _map.BackColor);
+            Renderer.Render(WpfCanvas, Viewport, _map.Layers, Map.Widgets, 1.0f, _map.BackColor);
         }
 
         private float GetPixelDensity()

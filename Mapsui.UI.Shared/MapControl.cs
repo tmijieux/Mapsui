@@ -63,10 +63,7 @@ namespace Mapsui.UI.Wpf
             }
         }
 
-        public float PixelDensity
-        {
-            get => GetPixelDensity();
-        }
+        public float PixelDensity => GetPixelDensity();
 
         private IRenderer _renderer = new MapRenderer();
 
@@ -430,6 +427,10 @@ namespace Mapsui.UI.Wpf
         {
             var hadSize = Viewport.HasSize;
             _viewport.SetSize(ViewportWidth, ViewportHeight);
+
+            System.Diagnostics.Debug.WriteLine($"VP width={ViewportWidth} VP height={ViewportHeight}");
+
+
             if (!hadSize && Viewport.HasSize) OnViewportSizeInitialized();
             CallHomeIfNeeded();
             Refresh();

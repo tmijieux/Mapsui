@@ -43,7 +43,7 @@ namespace Mapsui.Geometries
             Data.CopyTo(copy);
             return new Raster(copy, _boundingBox.Clone());
         }
-        
+
         public override double Distance(Point point)
         {
             var geometry = Envelope;
@@ -58,9 +58,9 @@ namespace Mapsui.Geometries
         public override int GetHashCode()
         {
             // todo: check performance of MemoryStream.GetHashCode
-            return Envelope.GetHashCode()*Data.GetHashCode(); 
+            return Envelope.GetHashCode()*Data.GetHashCode();
         }
-        
+
         public override bool Equals(Geometry geom)
         {
             var raster = geom as Raster;

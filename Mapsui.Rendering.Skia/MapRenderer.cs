@@ -22,10 +22,10 @@ namespace Mapsui.Rendering.Skia
     {
         private const int TilesToKeepMultiplier = 3;
         private const int MinimumTilesToKeep = 32;
-        private readonly SymbolCache _symbolCache = new SymbolCache();
-        private readonly IDictionary<object, BitmapInfo> _tileCache =
-            new Dictionary<object, BitmapInfo>(new IdentityComparer<object>());
+        private readonly SymbolCache _symbolCache = new();
+        private readonly Dictionary<object, BitmapInfo> _tileCache = new(new IdentityComparer<object>());
         private long _currentIteration;
+        private float _pixelDensity = 1.0f;
 
         public ISymbolCache SymbolCache => _symbolCache;
 
@@ -53,8 +53,9 @@ namespace Mapsui.Rendering.Skia
         }
 
         public void Render(object target, IReadOnlyViewport viewport, IEnumerable<ILayer> layers,
-            IEnumerable<IWidget> widgets, Color background)
+                  IEnumerable<IWidget> widgets, float pixelDensity, Color background)
         {
+            _pixelDensity = pixelDensity;
             var attributions = layers.Where(l => l.Enabled).Select(l => l.Attribution).Where(w => w != null).ToList();
             var allWidgets = widgets.Concat(attributions);
 
@@ -87,6 +88,7 @@ namespace Mapsui.Rendering.Skia
                 canvas.Clear(background.ToSkia(1));
             RenderLayers(canvas, viewport, layers, currentBenchmarks.Take(layerCount).ToList());
             RenderWidgets(canvas, viewport, allWidgets, 1.0f, currentBenchmarks.Skip(layerCount).ToList());
+            canvas.Flush();
 
             stopWatch.Stop();
             benchmark.Time = stopWatch.Elapsed.TotalMilliseconds;
@@ -102,20 +104,23 @@ namespace Mapsui.Rendering.Skia
 
         public MemoryStream RenderToBitmapStream(IReadOnlyViewport viewport, IEnumerable<ILayer> layers, Color background = null, float pixelDensity = 1)
         {
+            _pixelDensity = pixelDensity;
             try
             {
                 var width = (int)viewport.Width;
                 var height = (int)viewport.Height;
-                var imageInfo = new SKImageInfo((int)Math.Round(width * pixelDensity), (int)Math.Round(height * pixelDensity), 
+                var imageInfo = new SKImageInfo((int)Math.Round(width * pixelDensity), (int)Math.Round(height * pixelDensity),
                     SKImageInfo.PlatformColorType, SKAlphaType.Unpremul);
 
                 using (var surface = SKSurface.Create(imageInfo))
                 {
-                    if (surface == null) return null;
+                    if (surface == null)
+                        return null;
                     // Not sure if this is needed here:
-                    if (background != null) surface.Canvas.Clear(background.ToSkia(1));
-                    surface.Canvas.Scale(pixelDensity, pixelDensity);
-                    Render(surface.Canvas, viewport, layers, null, null);
+                    if (background != null)
+                        surface.Canvas.Clear(background.ToSkia(1));
+
+                    RenderLayers(surface.Canvas, viewport, layers, null);
                     using (var image = surface.Snapshot())
                     {
                         using (var data = image.Encode())
@@ -161,7 +166,8 @@ namespace Mapsui.Rendering.Skia
             tilesToKeep = Math.Max(tilesToKeep, MinimumTilesToKeep);
             var tilesToRemove = _tileCache.Keys.Count - tilesToKeep;
 
-            if (tilesToRemove > 0) RemoveOldBitmaps(_tileCache, tilesToRemove);
+            if (tilesToRemove > 0)
+                RemoveOldBitmaps(_tileCache, tilesToRemove);
         }
 
         private static void RemoveOldBitmaps(IDictionary<object, BitmapInfo> tileCache, int numberToRemove)
@@ -170,10 +176,11 @@ namespace Mapsui.Rendering.Skia
             var orderedKeys = tileCache.OrderBy(kvp => kvp.Value.IterationUsed).Select(kvp => kvp.Key).ToList();
             foreach (var key in orderedKeys)
             {
-                if (counter >= numberToRemove) break;
+                if (counter >= numberToRemove)
+                    break;
                 var textureInfo = tileCache[key];
                 tileCache.Remove(key);
-                textureInfo.Bitmap.Dispose();
+                textureInfo.Image.Dispose();
                 counter++;
             }
         }
@@ -186,29 +193,29 @@ namespace Mapsui.Rendering.Skia
                 // Save canvas
                 canvas.Save();
                 // We have a special renderer, so try, if it could draw this
-                var result = ((ISkiaStyleRenderer)StyleRenderers[style.GetType()]).Draw(canvas, viewport, layer, feature, style, _symbolCache);
+                var wasDrawn = ((ISkiaStyleRenderer)StyleRenderers[style.GetType()]).Draw(canvas, viewport, layer, feature, style, _symbolCache);
                 // Restore old canvas
                 canvas.Restore();
                 // Was it drawn?
-                if (result)
+                if (wasDrawn)
                     // Yes, special style renderer drawn correct
                     return;
             }
             // No special style renderer handled this up to now, than try standard renderers
             if (feature.Geometry is Point)
-                PointRenderer.Draw(canvas, viewport, style, feature, feature.Geometry, _symbolCache, layerOpacity * style.Opacity);
+                PointRenderer.Draw(canvas, viewport, style, feature, feature.Geometry, _symbolCache, layerOpacity * style.Opacity, _pixelDensity);
             else if (feature.Geometry is MultiPoint)
-                MultiPointRenderer.Draw(canvas, viewport, style, feature, feature.Geometry, _symbolCache, layerOpacity * style.Opacity);
+                MultiPointRenderer.Draw(canvas, viewport, style, feature, feature.Geometry, _symbolCache, layerOpacity * style.Opacity, _pixelDensity);
             else if (feature.Geometry is LineString)
-                LineStringRenderer.Draw(canvas, viewport, style, feature, feature.Geometry, layerOpacity * style.Opacity);
+                LineStringRenderer.Draw(canvas, viewport, style, feature, feature.Geometry, layerOpacity * style.Opacity, _pixelDensity);
             else if (feature.Geometry is MultiLineString)
-                MultiLineStringRenderer.Draw(canvas, viewport, style, feature, feature.Geometry, layerOpacity * style.Opacity);
+                MultiLineStringRenderer.Draw(canvas, viewport, style, feature, feature.Geometry, layerOpacity * style.Opacity, _pixelDensity);
             else if (feature.Geometry is Polygon)
-                PolygonRenderer.Draw(canvas, viewport, style, feature, feature.Geometry, layerOpacity * style.Opacity, _symbolCache);
+                PolygonRenderer.Draw(canvas, viewport, style, feature, feature.Geometry, layerOpacity * style.Opacity, _pixelDensity, _symbolCache);
             else if (feature.Geometry is MultiPolygon)
-                MultiPolygonRenderer.Draw(canvas, viewport, style, feature, feature.Geometry, layerOpacity * style.Opacity, _symbolCache);
-            else if (feature.Geometry is IRaster)
-                RasterRenderer.Draw(canvas, viewport, style, feature, layerOpacity * style.Opacity, _tileCache, _currentIteration);
+                MultiPolygonRenderer.Draw(canvas, viewport, style, feature, feature.Geometry, layerOpacity * style.Opacity, _pixelDensity, _symbolCache);
+            else if (feature.Geometry is IRaster raster)
+                RasterRenderer.Draw(canvas, viewport, raster, layerOpacity * style.Opacity, _tileCache, _currentIteration);
         }
 
         private void RenderWidgets(SKCanvas canvas, IReadOnlyViewport viewport, IEnumerable<IWidget> widgets, float layerOpacity, List<RenderBenchmark> currentBenchmarks)
@@ -233,7 +240,8 @@ namespace Mapsui.Rendering.Skia
                 Resolution = viewport.Resolution
             };
 
-            if (!viewport.Extent.Contains(viewport.ScreenToWorld(result.ScreenPosition))) return result;
+            if (!viewport.Extent.Contains(viewport.ScreenToWorld(result.ScreenPosition)))
+                return result;
 
             try
             {
@@ -245,29 +253,29 @@ namespace Mapsui.Rendering.Skia
                 var intX = (int)x;
                 var intY = (int)y;
 
-                using (var surface = SKSurface.Create(imageInfo))
-                {
-                    if (surface == null) return null;
+                using var surface = SKSurface.Create(imageInfo);
+                if (surface == null)
+                    return null;
 
-                    surface.Canvas.ClipRect(new SKRect((float)(x - 1), (float)(y - 1), (float)(x + 1), (float)(y + 1)));
-                    surface.Canvas.Clear(SKColors.Transparent);
+                var canvas = surface.Canvas;
 
-                    var pixmap = surface.PeekPixels();
-                    var color = pixmap.GetPixelColor(intX, intY);
+                canvas.ClipRect(new SKRect((float)(x - 1), (float)(y - 1), (float)(x + 1), (float)(y + 1)));
+                canvas.Clear(SKColors.Transparent);
 
-                    VisibleFeatureIterator.IterateLayers(viewport, layers, (v, layer, style, feature, opacity) => {
-                        surface.Canvas.Save();
-                        // 1) Clear the entire bitmap
-                        surface.Canvas.Clear(SKColors.Transparent);
-                        // 2) Render the feature to the clean canvas
-                        RenderFeature(surface.Canvas, v, layer, style, feature, opacity);
-                        // 3) Check if the pixel has changed.
-                        if (color != pixmap.GetPixelColor(intX, intY))
-                            // 4) Add feature and style to result
-                            list.Add(new MapInfoRecord(feature, style, layer));
-                        surface.Canvas.Restore();
+                var pixmap = surface.PeekPixels();
+                var color = pixmap.GetPixelColor(intX, intY);
+
+                VisibleFeatureIterator.IterateLayers(viewport, layers, (v, layer, style, feature, opacity) => {
+                    // 1) Clear the entire bitmap
+                    canvas.Clear(SKColors.Transparent);
+                    // 2) Render the feature to the clean canvas
+                    RenderFeature(canvas, v, layer, style, feature, opacity);
+                    // 3) Check if the pixel has changed.
+                    if (color != pixmap.GetPixelColor(intX, intY))
+                        // 4) Add feature and style to result
+                        list.Add(new MapInfoRecord(feature, style, layer));
                     }, null);
-                }
+
 
                 if (list.Count == 0)
                     return result;
@@ -279,7 +287,6 @@ namespace Mapsui.Rendering.Skia
                 result.Style = itemDrawnOnTop.Style;
                 result.Layer = itemDrawnOnTop.Layer;
                 result.MapInfoRecords = list;
-
             }
             catch (Exception exception)
             {

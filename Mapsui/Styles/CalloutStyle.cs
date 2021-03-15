@@ -61,7 +61,6 @@ namespace Mapsui.Rendering.Skia
         private float _strokeWidth = 1f;
         private int _content = -1;
         private Offset _offset = new Offset(0, 0);
-        private double _rotation = 0;
         private string _title;
         private string _subtitle;
         private Alignment _titleTextAlignment;
@@ -88,14 +87,7 @@ namespace Mapsui.Rendering.Skia
         public CalloutType Type
         {
             get => _type;
-            set
-            {
-                if (_type != value)
-                {
-                    _type = value;
-                    Invalidated = true;
-                }
-            }
+            set => SetAndInvalidateIfChanged(ref _type, value);
         }
 
         /// <summary>
@@ -104,15 +96,7 @@ namespace Mapsui.Rendering.Skia
         public Offset Offset
         {
             get => _offset;
-            set
-            {
-                if (!_offset.Equals(value))
-                {
-                    _offset = value;
-                    Invalidated = true;
-                    //SymbolOffset = new Offset(_offset.X, _offset.Y);
-                }
-            }
+            set => SetAndInvalidateIfChanged(ref _offset, value);
         }
 
         /// <summary>
@@ -125,15 +109,8 @@ namespace Mapsui.Rendering.Skia
         /// </summary>
         public double Rotation
         {
-            get => _rotation;
-            set
-            {
-                if (_rotation != value)
-                {
-                    _rotation = value;
-                    SymbolRotation = _rotation;
-                }
-            }
+            get => SymbolRotation;
+            set => SymbolRotation = value;
         }
 
         /// <summary>
@@ -142,14 +119,7 @@ namespace Mapsui.Rendering.Skia
         public ArrowAlignment ArrowAlignment
         {
             get => _arrowAlignment;
-            set
-            {
-                if (value != _arrowAlignment)
-                {
-                    _arrowAlignment = value;
-                    Invalidated = true;
-                }
-            }
+            set => SetAndInvalidateIfChanged(ref _arrowAlignment, value);
         }
 
         /// <summary>
@@ -158,14 +128,7 @@ namespace Mapsui.Rendering.Skia
         public float ArrowWidth
         {
             get => _arrowWidth;
-            set
-            {
-                if (value != _arrowWidth)
-                {
-                    _arrowWidth = value;
-                    Invalidated = true;
-                }
-            }
+            set => SetAndInvalidateIfChanged(ref _arrowWidth, value);
         }
 
         /// <summary>
@@ -174,14 +137,7 @@ namespace Mapsui.Rendering.Skia
         public float ArrowHeight
         {
             get => _arrowHeight;
-            set
-            {
-                if (value != _arrowHeight)
-                {
-                    _arrowHeight = value;
-                    Invalidated = true;
-                }
-            }
+            set => SetAndInvalidateIfChanged(ref _arrowWidth, value);
         }
 
         /// <summary>
@@ -190,14 +146,7 @@ namespace Mapsui.Rendering.Skia
         public float ArrowPosition
         {
             get => _arrowPosition;
-            set
-            {
-                if (value != _arrowPosition)
-                {
-                    _arrowPosition = value;
-                    Invalidated = true;
-                }
-            }
+            set => SetAndInvalidateIfChanged(ref _arrowPosition, value);
         }
 
         /// <summary>
@@ -206,14 +155,7 @@ namespace Mapsui.Rendering.Skia
         public Color Color
         {
             get => _color;
-            set
-            {
-                if (value != _color)
-                {
-                    _color = value;
-                    Invalidated = true;
-                }
-            }
+            set => SetAndInvalidateIfChanged(ref _color, value);
         }
 
         /// <summary>
@@ -222,14 +164,7 @@ namespace Mapsui.Rendering.Skia
         public Color BackgroundColor
         {
             get => _backgroundColor;
-            set
-            {
-                if (value != _backgroundColor)
-                {
-                    _backgroundColor = value;
-                    Invalidated = true;
-                }
-            }
+            set => SetAndInvalidateIfChanged(ref _backgroundColor, value);
         }
 
         /// <summary>
@@ -238,14 +173,7 @@ namespace Mapsui.Rendering.Skia
         public float StrokeWidth
         {
             get => _strokeWidth;
-            set
-            {
-                if (value != _strokeWidth)
-                {
-                    _strokeWidth = value;
-                    Invalidated = true;
-                }
-            }
+            set => SetAndInvalidateIfChanged(ref _strokeWidth, value);
         }
 
         /// <summary>
@@ -254,14 +182,7 @@ namespace Mapsui.Rendering.Skia
         public float RectRadius
         {
             get => _rectRadius;
-            set
-            {
-                if (value != _rectRadius)
-                {
-                    _rectRadius = value;
-                    Invalidated = true;
-                }
-            }
+            set => SetAndInvalidateIfChanged(ref _rectRadius, value);
         }
 
         /// <summary>
@@ -270,14 +191,7 @@ namespace Mapsui.Rendering.Skia
         public BoundingBox Padding
         {
             get => _padding;
-            set
-            {
-                if (value != _padding)
-                {
-                    _padding = value;
-                    Invalidated = true;
-                }
-            }
+            set => SetAndInvalidateIfChanged(ref _padding, value);
         }
 
         /// <summary>
@@ -286,14 +200,7 @@ namespace Mapsui.Rendering.Skia
         public float ShadowWidth
         {
             get => _shadowWidth;
-            set
-            {
-                if (value != _shadowWidth)
-                {
-                    _shadowWidth = value;
-                    Invalidated = true;
-                }
-            }
+            set => SetAndInvalidateIfChanged(ref _shadowWidth, value);
         }
 
         /// <summary>
@@ -305,14 +212,7 @@ namespace Mapsui.Rendering.Skia
         public int Content
         {
             get => _content;
-            set
-            {
-                if (_content != value)
-                {
-                    _content = value;
-                    Invalidated = true;
-                }
-            }
+            set => SetAndInvalidateIfChanged(ref _content, value);
         }
 
         /// <summary>
@@ -321,27 +221,16 @@ namespace Mapsui.Rendering.Skia
         public string Title
         {
             get => _title;
-            set
-            {
-                if (_title != value)
-                {
-                    _title = value;
-                    Invalidated = true;
-                }
-            }
+            set => SetAndInvalidateIfChanged(ref _title, value);
         }
 
         /// <summary>
         /// Font color to render title
         /// </summary>
-        public Color TitleFontColor 
+        public Color TitleFontColor
         {
-            get { return _titleFontColor; }
-            set
-            {
-                _titleFontColor = value;
-                Invalidated = true;
-            }
+            get => _titleFontColor;
+            set => SetAndInvalidateIfChanged(ref _titleFontColor, value);
         }
 
         /// <summary>
@@ -350,14 +239,7 @@ namespace Mapsui.Rendering.Skia
         public Alignment TitleTextAlignment
         {
             get => _titleTextAlignment;
-            set
-            {
-                if (_titleTextAlignment != value)
-                {
-                    _titleTextAlignment = value;
-                    Invalidated = true;
-                }
-            }
+            set => SetAndInvalidateIfChanged(ref _titleTextAlignment, value);
         }
 
         /// <summary>
@@ -366,14 +248,7 @@ namespace Mapsui.Rendering.Skia
         public string Subtitle
         {
             get => _subtitle;
-            set
-            {
-                if (_subtitle != value)
-                {
-                    _subtitle = value;
-                    Invalidated = true;
-                }
-            }
+            set => SetAndInvalidateIfChanged(ref _subtitle, value);
         }
 
         /// <summary>
@@ -381,12 +256,8 @@ namespace Mapsui.Rendering.Skia
         /// </summary>
         public Color SubtitleFontColor
         {
-            get { return _subtitleFontColor; }
-            set
-            {
-                _subtitleFontColor = value;
-                Invalidated = true;
-            }
+            get => _subtitleFontColor;
+            set => SetAndInvalidateIfChanged(ref _subtitleFontColor, value);
         }
 
         /// <summary>
@@ -395,14 +266,7 @@ namespace Mapsui.Rendering.Skia
         public Alignment SubtitleTextAlignment
         {
             get => _subtitleTextAlignment;
-            set
-            {
-                if (_subtitleTextAlignment != value)
-                {
-                    _subtitleTextAlignment = value;
-                    Invalidated = true;
-                }
-            }
+            set => SetAndInvalidateIfChanged(ref _subtitleTextAlignment, value);
         }
 
         /// <summary>
@@ -411,14 +275,7 @@ namespace Mapsui.Rendering.Skia
         public double Spacing
         {
             get => _spacing;
-            set
-            {
-                if (_spacing != value)
-                {
-                    _spacing = value;
-                    Invalidated = true;
-                }
-            }
+            set => SetAndInvalidateIfChanged(ref _spacing, value);
         }
 
         /// <summary>
@@ -427,14 +284,7 @@ namespace Mapsui.Rendering.Skia
         public double MaxWidth
         {
             get => _maxWidth;
-            set
-            {
-                if (_maxWidth != value)
-                {
-                    _maxWidth = value;
-                    Invalidated = true;
-                }
-            }
+            set => SetAndInvalidateIfChanged(ref _maxWidth, value);
         }
 
         public int InternalContent { get; set; } = -1;
@@ -444,31 +294,17 @@ namespace Mapsui.Rendering.Skia
 
         public Font TitleFont
         {
-            get
-            {
-                return _titleFont;
-            }
-            set 
-            {
-                _titleFont = value;
-                Invalidated = true;
-            }
+            get => _titleFont;
+            set => SetAndInvalidateIfChanged(ref _titleFont, value);
         }
 
         public Font SubtitleFont
         {
-            get
-            {
-                return _subtitleFont;
-            }
-            set
-            {
-                _subtitleFont = value;
-                Invalidated = true;
-            }
+            get => _subtitleFont;
+            set => SetAndInvalidateIfChanged(ref _subtitleFont, value);
         }
 
-        public bool Invalidated
+        public override bool Invalidated
         {
             get
             {

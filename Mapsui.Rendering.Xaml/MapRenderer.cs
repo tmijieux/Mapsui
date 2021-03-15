@@ -21,6 +21,8 @@ using Mapsui.Widgets.Zoom;
 using XamlMedia = System.Windows.Media;
 using Mapsui.UI;
 using Mapsui.Rendering.Xaml.XamlStyles;
+using System.Diagnostics;
+using System.ComponentModel;
 
 namespace Mapsui.Rendering.Xaml
 {
@@ -51,9 +53,11 @@ namespace Mapsui.Rendering.Xaml
         }
 
         public void Render(object target, IReadOnlyViewport viewport, IEnumerable<ILayer> layers,
-            IEnumerable<IWidget> widgets, Color background = null)
+            IEnumerable<IWidget> widgets, float pixelDensity, Color background = null)
         {
             var allWidgets = layers.Select(l => l.Attribution).ToList().Where(w => w != null).Concat(widgets).ToList();
+            if (pixelDensity != 1.0f)
+                Debug.WriteLine("[WARNING] pixelDensity != 1.0f in xaml renderer is meaningless");
 
 
             if (!viewport.HasSize)

@@ -1,4 +1,7 @@
-﻿using System.IO;
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -15,11 +18,18 @@ namespace Mapsui.UI.Forms
 {
     public class Pin : BindableObject, IFeatureProvider
     {
+        private static readonly string BasicPinSvg = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"36\" height=\"56\"><path d=\"M18 .34C8.325.34.5 8.168.5 17.81c0 3.339.962 6.441 2.594 9.094H3l7.82 15.117L18 55.903l7.187-13.895L33 26.903h-.063c1.632-2.653 2.594-5.755 2.594-9.094C35.531 8.169 27.675.34 18 .34zm0 9.438a6.5 6.5 0 1 1 0 13 6.5 6.5 0 0 1 0-13z\" fill=\"COLOR\"/></svg>";
+        private static readonly Dictionary<string,int> _pinCache = new();
+        private static readonly Dictionary<string,int> _pinColorCache = new();
+        private static string ToHexColor(SKColor c)
+        {
+            return $"#{c.Red:X2}{c.Green:X2}{c.Blue:X2}";
+        }
+
         private int _bitmapId = -1;
-        private byte[] _bitmapData;
         private MapView _mapView;
 
-        public static readonly BindableProperty TypeProperty = BindableProperty.Create(nameof(Type), typeof(PinType), typeof(Pin), default(PinType));
+        public static readonly BindableProperty TypeProperty = BindableProperty.Create(nameof(Type), typeof(PinType), typeof(Pin), PinType.None);
         public static readonly BindableProperty ColorProperty = BindableProperty.Create(nameof(Color), typeof(Xamarin.Forms.Color), typeof(Pin), SKColors.Red.ToFormsColor());
         public static readonly BindableProperty PositionProperty = BindableProperty.Create(nameof(Position), typeof(Position), typeof(Pin), default(Position));
         public static readonly BindableProperty LabelProperty = BindableProperty.Create(nameof(Label), typeof(string), typeof(Pin), default(string));
@@ -41,30 +51,20 @@ namespace Mapsui.UI.Forms
         /// Initializes a new instance of the <see cref="T:Mapsui.UI.Forms.Pin"/> class
         /// </summary>
         /// <param name="mapView">MapView to which this pin belongs</param>
-        public Pin(MapView mapView)
-        {
-            _mapView = mapView;
-
-            CreateFeature();
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="T:Mapsui.UI.Forms.Pin"/> class
-        /// </summary>
-        /// <param name="mapView">MapView to which this pin belongs</param>
         public Pin()
         {
         }
 
         /// <summary>
-        /// Internal MapView for refreshing of screen
+        /// Internal MapView for callout handling
+        /// this is set automatically when a Pin is added into a map
         /// </summary>
         internal MapView MapView
-        { 
-            get 
-            { 
-                return _mapView; 
-            } 
+        {
+            get
+            {
+                return _mapView;
+            }
             set
             {
                 if (_mapView != value)
@@ -73,11 +73,18 @@ namespace Mapsui.UI.Forms
                     {
                         _mapView?.RemoveCallout(_callout);
                     }
-                    
-                    Feature = null;
+                    if (Feature == null)
+                    {
+                        if (Type == PinType.None)
+                        {
+                            Type = PinType.Pin;
+                        }
+                        else
+                        {
+                            CreateFeature();
+                        }
+                    }
                     _mapView = value;
-
-                    CreateFeature();
                 }
             }
         }
@@ -114,7 +121,8 @@ namespace Mapsui.UI.Forms
         /// </summary>
         public Xamarin.Forms.Color Color
         {
-            get { return (Xamarin.Forms.Color)GetValue(ColorProperty); }
+            get { return (Xamarin.Forms.Color)GetValue(
+                    ColorProperty); }
             set { SetValue(ColorProperty, value); }
         }
 
@@ -274,7 +282,6 @@ namespace Mapsui.UI.Forms
                         _callout.Subtitle = Address;
                     }
                 }
-                
                 return _callout;
             }
             internal set
@@ -289,6 +296,8 @@ namespace Mapsui.UI.Forms
         /// </summary>
         public void ShowCallout()
         {
+            if (_mapView == null)
+                throw new Exception("you cannot show callout if Pin is not attached to a MapView");
             _callout.Update();
             _mapView.AddCallout(_callout);
         }
@@ -298,7 +307,8 @@ namespace Mapsui.UI.Forms
         /// </summary>
         public void HideCallout()
         {
-            _mapView.RemoveCallout(_callout);
+            if (_mapView != null)
+                _mapView.RemoveCallout(_callout);
         }
 
         /// <summary>
@@ -360,162 +370,134 @@ namespace Mapsui.UI.Forms
 
             switch (propertyName)
             {
-                case nameof(Position):
-                    if (Feature != null)
-                    {
-                        Feature.Geometry = Position.ToMapsui();
-                        _callout.Feature.Geometry = Feature.Geometry;
-                    }
-                    break;
-                case nameof(Label):
-                    if (Feature != null)
-                        Feature["Label"] = Label;
-                    Callout.Title = Label;
-                    break;
-                case nameof(Address):
-                    Callout.Subtitle = Address;
-                    break;
-                case nameof(Transparency):
-                    ((SymbolStyle)Feature.Styles.First()).Opacity = 1 - Transparency;
-                    break;
-                case nameof(Anchor):
-                    ((SymbolStyle)Feature.Styles.First()).SymbolOffset = new Offset(Anchor.X, Anchor.Y);
-                    break;
-                case nameof(Rotation):
-                    ((SymbolStyle)Feature.Styles.First()).SymbolRotation = Rotation;
-                    break;
-                case nameof(RotateWithMap):
-                    ((SymbolStyle)Feature.Styles.First()).RotateWithMap = RotateWithMap;
-                    break;
-                case nameof(IsVisible):
-                    if (!IsVisible)
-                        HideCallout();
-                    ((SymbolStyle)Feature.Styles.First()).Enabled = IsVisible;
-                    break;
-                case nameof(MinVisible):
-                    // TODO: Update callout MinVisble too
-                    ((SymbolStyle)Feature.Styles.First()).MinVisible = MinVisible;
-                    break;
-                case nameof(MaxVisible):
-                    // TODO: Update callout MaxVisble too
-                    ((SymbolStyle)Feature.Styles.First()).MaxVisible = MaxVisible;
-                    break;
-                case nameof(Scale):
-                    ((SymbolStyle)Feature.Styles.First()).SymbolScale = Scale;
-                    break;
-                case nameof(Type):
-                case nameof(Color):
+            case nameof(IsVisible):
+                CreateFeature();
+                if (!IsVisible)
+                    HideCallout();
+                break;
+            case nameof(MinVisible): // TODO: Update callout MinVisible too
+            case nameof(MaxVisible): // TODO: Update callout MaxVisible too
+            case nameof(Scale):
+            case nameof(Position):
+            case nameof(Label):
+            case nameof(Address):
+            case nameof(Transparency):
+            case nameof(Anchor):
+            case nameof(Rotation):
+            case nameof(RotateWithMap):
+            case nameof(Type):
+            case nameof(Color):
+                CreateFeature();
+                break;
+            case nameof(Icon):
+                if (Type == PinType.Icon)
                     CreateFeature();
-                    break;
-                case nameof(Icon):
-                    if (Type == PinType.Icon)
-                        CreateFeature();
-                    break;
-                case nameof(Svg):
-                    if (Type == PinType.Svg)
-                        CreateFeature();
-                    break;
+                break;
+            case nameof(Svg):
+                if (Type == PinType.Svg)
+                    CreateFeature();
+                break;
             }
         }
 
-        private readonly object _sync = new object();
-
         private void CreateFeature()
         {
-            lock (_sync)
+            if (Feature == null)
             {
-                if (Feature == null)
+                // Create a new one
+                Feature = new Feature();
+            }
+            var pos = Position.ToMapsui();
+            Feature.Geometry = pos;
+            Callout.Feature.Geometry = pos;
+            Callout.Subtitle = Address;
+            Callout.Title = Label;
+
+            Feature["Label"] = Label;
+            // Check for bitmapId
+            if (_bitmapId != -1)
+            {
+                // There is already a registered bitmap, so delete it
+                BitmapRegistry.Instance.Unregister(_bitmapId);
+                // We don't have any bitmap up to now
+                _bitmapId = -1;
+            }
+
+            switch (Type)
+            {
+            case PinType.None:
+                _bitmapId = -1;
+                break;
+            case PinType.Svg:
+                if (string.IsNullOrWhiteSpace(Svg))
                 {
-                    // Create a new one
-                    Feature = new Feature
-                    {
-                        Geometry = Position.ToMapsui(),
-                        ["Label"] = Label,
-                    };
-                    if (_callout != null)
-                        _callout.Feature.Geometry = Position.ToMapsui();
-                }
-                // Check for bitmapId
-                if (_bitmapId != -1)
-                {
-                    // There is already a registered bitmap, so delete it
-                    BitmapRegistry.Instance.Unregister(_bitmapId);
-                    // We don't have any bitmap up to now
                     _bitmapId = -1;
+                    return;
                 }
-
-                Stream stream = null;
-
-                switch (Type)
+                // Load the SVG document
+                if (_pinCache.TryGetValue(Svg, out var bitmapId))
                 {
-                    case PinType.Svg:
-                        // Load the SVG document
-                        if (!string.IsNullOrEmpty(Svg))
-                            stream = new MemoryStream(Encoding.UTF8.GetBytes(Svg));
-                        if (stream == null)
-                            return;
-                        _bitmapId = BitmapRegistry.Instance.Register(stream);
-                        break;
-                    case PinType.Pin:
-                        // First we have to create a bitmap from Svg code
-                        // Create a new SVG object
-                        var svg = new SKSvg();
-                        // Load the SVG document
-                        stream = Utilities.EmbeddedResourceLoader.Load("Images.Pin.svg", typeof(Pin));
-                        if (stream == null)
-                            return;
-                        svg.Load(stream);
-                        Width = svg.Picture.CullRect.Width * Scale;
-                        Height = svg.Picture.CullRect.Height * Scale;
-                        // Create bitmap to hold canvas
-                        var info = new SKImageInfo((int)svg.Picture.CullRect.Width, (int)svg.Picture.CullRect.Height) { AlphaType = SKAlphaType.Premul };
-                        var bitmap = new SKBitmap(info);
-                        var canvas = new SKCanvas(bitmap);
-                        // Now draw Svg image to bitmap
-                        using (var paint = new SKPaint() { IsAntialias = true })
-                        {
-                            // Replace color while drawing
-                            paint.ColorFilter = SKColorFilter.CreateBlendMode(Color.ToSKColor(), SKBlendMode.SrcIn); // use the source color
-                            canvas.Clear();
-                            canvas.DrawPicture(svg.Picture, paint);
-                        }
-                        // Now convert canvas to bitmap
-                        using (var image = SKImage.FromBitmap(bitmap))
-                        using (var data = image.Encode(SKEncodedImageFormat.Png, 100))
-                        {
-                            _bitmapData = data.ToArray();
-                        }
-                        _bitmapId = BitmapRegistry.Instance.Register(new MemoryStream(_bitmapData));
-                        break;
-                    case PinType.Icon:
-                        if (Icon != null)
-                        {
-                            using (var image = SKBitmap.Decode(Icon))
-                            {
-                                Width = image.Width * Scale;
-                                Height = image.Height * Scale;
-                                _bitmapId = BitmapRegistry.Instance.Register(new MemoryStream(Icon));
-                            }
-                        }
-                        break;
+                    _bitmapId = bitmapId;
                 }
-
-                // If we have a bitmapId (and we should have one), than draw bitmap, otherwise nothing
-                if (_bitmapId != -1)
+                else
                 {
-                    // We only want to have one style
-                    Feature.Styles.Clear();
-                    Feature.Styles.Add(new SymbolStyle
-                    {
-                        BitmapId = _bitmapId,
-                        SymbolScale = Scale,
-                        SymbolRotation = Rotation,
-                        RotateWithMap = RotateWithMap,
-                        SymbolOffset = new Offset(Anchor.X, Anchor.Y),
-                        Opacity = 1 - Transparency,
-                        Enabled = IsVisible,
-                    });
+                    var svg = new SKSvg();
+                    svg.FromSvg(Svg);
+                    Width = svg.Picture.CullRect.Width * Scale;
+                    Height = svg.Picture.CullRect.Height * Scale;
+                    _bitmapId = BitmapRegistry.Instance.Register(svg.Picture);
+                    _pinCache[Svg] = _bitmapId;
                 }
+                break;
+            case PinType.Pin:
+                // First we have to create a bitmap from Svg code
+                // Create a new SVG object
+                var skColor = Color.ToSKColor();
+                var colorInHex = ToHexColor(skColor);
+                if (_pinColorCache.TryGetValue(colorInHex, out bitmapId))
+                {
+                    _bitmapId = bitmapId;
+                }
+                else
+                {
+                    var text = BasicPinSvg.Replace("COLOR", colorInHex);
+                    var svg = new SKSvg();
+                    svg.FromSvg(text);
+                    //double PixelRatio = 1.0;
+                    Width = svg.Picture.CullRect.Width * Scale;
+                    Height = svg.Picture.CullRect.Height * Scale;
+                    _bitmapId = BitmapRegistry.Instance.Register(svg.Picture);
+                    _pinCache[colorInHex] = _bitmapId;
+                }
+                break;
+            case PinType.Icon:
+                if (Icon != null)
+                {
+                    using var bitmap = SKBitmap.Decode(Icon);
+                    var image = SKImage.FromBitmap(bitmap);
+                    Width = image.Width * Scale;
+                    Height = image.Height * Scale;
+                    _bitmapId = BitmapRegistry.Instance.Register(image);
+                }
+                break;
+            }
+
+            // If we have a bitmapId (and we should have one),
+            // then create style, otherwise nothing
+            if (_bitmapId != -1)
+            {
+                // We only want to have one style
+                Feature.Styles.Clear();
+                Feature.Styles.Add(new SymbolStyle
+                {
+                    BitmapId = _bitmapId,
+                    SymbolScale = Scale,
+                    SymbolRotation = Rotation,
+                    RotateWithMap = RotateWithMap,
+                    SymbolOffset = new Offset(Anchor.X, Anchor.Y),
+                    Opacity = 1 - Transparency,
+                    Enabled = IsVisible,
+                });
             }
         }
     }
