@@ -8,8 +8,9 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using Mapsui.Layers;
 using Mapsui.Styles;
-using Bitmap = System.Drawing.Bitmap;
+//using Bitmap = System.Drawing.Bitmap;
 using Color = System.Drawing.Color;
+using Bitmap = System.Drawing.Bitmap;
 
 namespace Mapsui.Providers
 {

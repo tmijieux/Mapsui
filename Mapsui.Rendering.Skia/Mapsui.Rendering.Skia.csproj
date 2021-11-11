@@ -1,18 +1,18 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <!-- <TargetFramework>netstandard2.0</TargetFramework> -->
+    <TargetFrameworks>net6.0;net6.0-android;net6.0-ios;net6.0-maccatalyst</TargetFrameworks>
     <Configurations>Release;Debug</Configurations>
-    <RuntimeIdentifiers>win10-x86;win10-x64;win10-arm64</RuntimeIdentifiers>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="SkiaSharp" Version="2.80.2" />
-    <PackageReference Include="Svg.Skia" Version="0.5.7.1" />
-    <PackageReference Include="Topten.RichTextKit" Version="0.4.145" />
+    <PackageReference Include="SkiaSharp" Version="2.88.0-preview.155" />
+    <PackageReference Include="Svg.Skia" Version="0.5.10" />
+    <PackageReference Include="Topten.RichTextKit" Version="0.4.148" />
   </ItemGroup>
 
   <ItemGroup>

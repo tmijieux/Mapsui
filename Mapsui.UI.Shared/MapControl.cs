@@ -13,17 +13,19 @@ using Mapsui.Widgets;
 
 #nullable enable
 
-#if __UWP__
+#if __MAPSUI_UWP__
 namespace Mapsui.UI.Uwp
-#elif __ANDROID__
+#elif __MAPSUI_ANDROID__
 namespace Mapsui.UI.Android
-#elif __IOS__
+#elif __MAPSUI_IOS__
 namespace Mapsui.UI.iOS
-#elif __WINUI__
+#elif __MAPSUI_WINUI__
 namespace Mapsui.UI.WinUI
-#elif __FORMS__
+#elif __MAPSUI_FORMS__
 namespace Mapsui.UI.Forms
-#elif __AVALONIA__
+#elif __MAPSUI_MAUI__
+namespace Mapsui.UI.Maui
+#elif __MAPSUI_AVALONIA__
 namespace Mapsui.UI.Avalonia
 #else
 namespace Mapsui.UI.Wpf
@@ -285,13 +287,13 @@ namespace Mapsui.UI.Wpf
         /// <summary>
         /// Called whenever a property is changed
         /// </summary>
-#if __FORMS__ || __AVALONIA__
+#if __MAPSUI_FORMS__ || __MAPSUI_AVALONIA__
         public new event PropertyChangedEventHandler? PropertyChanged;
 #else
         public event PropertyChangedEventHandler? PropertyChanged;
 #endif
 
-#if __FORMS__
+#if __MAPSUI_FORMS__ || __MAPSUI_MAUI__
         protected override void OnPropertyChanged([CallerMemberName] string propertyName = "")
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));

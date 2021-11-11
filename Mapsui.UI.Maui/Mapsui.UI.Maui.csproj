@@ -1,23 +1,34 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFrameworks>net6.0;net6.0-android;net6.0-ios;net6.0-maccatalyst</TargetFrameworks>
+    <TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows')) and '$(MSBuildRuntimeType)' == 'Full'">$(TargetFrameworks);net6.0-windows10.0.19041</TargetFrameworks>
+    <UseMaui>true</UseMaui>
+    <SingleProject>true</SingleProject>
+
+    <SupportedOSPlatformVersion Condition="'$(TargetFramework)' == 'net6.0-ios'">14.2</SupportedOSPlatformVersion>
+    <SupportedOSPlatformVersion Condition="'$(TargetFramework)' == 'net6.0-maccatalyst'">14.0</SupportedOSPlatformVersion>
+    <SupportedOSPlatformVersion Condition="'$(TargetFramework)' == 'net6.0-android'">21.0</SupportedOSPlatformVersion>
+    <SupportedOSPlatformVersion Condition="$(TargetFramework.Contains('-windows'))">10.0.17763.0</SupportedOSPlatformVersion>
+    <TargetPlatformMinVersion Condition="$(TargetFramework.Contains('-windows'))">10.0.17763.0</TargetPlatformMinVersion>
+  </PropertyGroup>
+
+  <PropertyGroup>
     <NeutralLanguage>en</NeutralLanguage>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DefineConstants>TRACE;__MAPSUI_FORMS__;DEBUG;NETSTANDARD1_3</DefineConstants>
+    <DefineConstants>TRACE;__MAPSUI_MAUI__;DEBUG;NETSTANDARD1_3</DefineConstants>
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>portable</DebugType>
-    <DefineConstants>TRACE;RELEASE;NETSTANDARD1_3;__MAPSUI_FORMS__</DefineConstants>
+    <DefineConstants>TRACE;RELEASE;NETSTANDARD1_3;__MAPSUI_MAUI__</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="SkiaSharp" Version="2.80.2" />
-    <PackageReference Include="SkiaSharp.Views.Forms" Version="2.80.2" />
-    <PackageReference Include="Xamarin.Forms" Version="5.0.0.2083" />
+    <PackageReference Include="SkiaSharp" Version="2.88.0-preview.155" />
+    <PackageReference Include="SkiaSharp.Views.Maui.Controls" Version="2.88.0-preview.155" />
   </ItemGroup>
 
   <ItemGroup>
@@ -26,19 +37,6 @@
     <ProjectReference Include="..\Mapsui\Mapsui.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <None Remove="Images\Close.svg" />
-    <None Remove="Images\MyLocationMoving.svg" />
-    <None Remove="Images\MyLocationStill.svg" />
-    <None Remove="Images\Pin.svg" />
-    <None Remove="Images\MyLocationMoving.svg" />
-    <None Remove="Images\Location.svg" />
-    <None Remove="Images\LocationCenter.svg" />
-    <None Remove="Images\RotationZero.svg" />
-    <None Remove="Images\ZoomIn.svg" />
-    <None Remove="Images\ZoomOut.svg" />
-    <None Remove="Images\MyLocationDir.svg" />
-  </ItemGroup>
 
   <ItemGroup>
     <EmbeddedResource Include="Images\Close.svg" />
